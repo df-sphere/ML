@@ -133,8 +133,7 @@ def generate_batched_data(data, label, batch_size=32, shuffle=False, seed=None):
 
     def generate_batch(x, batch_size, shuffle = False):
         if shuffle:
-            data = random.shuffle(data)
-            label = random.shuffle(label)
+            random.shuffle(x)
     
         l_batch = []
         s = 0
@@ -145,8 +144,8 @@ def generate_batched_data(data, label, batch_size=32, shuffle=False, seed=None):
     
         nx = np.array(x[s:])
         l_batch.append(nx)
-
-    return l_batch
+    
+        return l_batch
 
     batched_data = generate_batch(data, batch_size, shuffle)
     batched_label = generate_batch(label, batch_size, shuffle)
