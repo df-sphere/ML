@@ -1,4 +1,4 @@
-""" 			  		 			     			  	   		   	  			  	
+"""
 Utiliy functions.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
@@ -68,16 +68,19 @@ def load_mnist_trainval():
     print("Training data loaded with {count} images".format(count=len(data)))
 
     # split training/validation data
-    train_data = None
-    train_label = None
-    val_data = None
-    val_label = None
     #############################################################################
     # TODO:                                                                     #
     #    1) Split the entire training set to training data and validation       #
     #       data. Use 80% of your data for training and 20% of your data for    #
     #       validation. Note: Don't shuffle here.                               #
     #############################################################################
+    c = 0.8
+    n1 = round(c*len(data))
+    n2 = len(data) - n1
+    train_data = data[:n1]
+    train_label = label[:n1]
+    val_data = data[-n2:]
+    val_label = label[-n2:]
 
     #############################################################################
     #                              END OF YOUR CODE                             #
@@ -127,6 +130,26 @@ def generate_batched_data(data, label, batch_size=32, shuffle=False, seed=None):
     #    It's okay if the size of your last batch is smaller than the required  #
     #    batch size                                                             #
     #############################################################################
+
+    def generate_batch(x, batch_size, shuffle = False):
+        if shuffle:
+            data = random.shuffle(data)
+            label = random.shuffle(label)
+    
+        l_batch = []
+        s = 0
+        while (s < len(x) - batch_size):
+          nx = np.array(x[s:s+batch_size])
+          l_batch.append(nx)
+          s += batch_size
+    
+        nx = np.array(x[s:])
+        l_batch.append(nx)
+
+    return l_batch
+
+    batched_data = generate_batch(data, batch_size, shuffle)
+    batched_label = generate_batch(label, batch_size, shuffle)
 
     #############################################################################
     #                              END OF YOUR CODE                             #
