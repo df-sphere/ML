@@ -1,4 +1,4 @@
-""" 			  		 			     			  	   		   	  			  	
+"""
 Softmax Regression Model.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
@@ -67,7 +67,8 @@ class SoftmaxRegression(_baseNetwork):
         # Hint:                                                                     #
         #   Store your intermediate outputs before ReLU for backwards               #
         #############################################################################
-
+        #accuracy = num_correct_pred/batch_size
+        #pred = argmax_i output_i (unnormalized works)
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################

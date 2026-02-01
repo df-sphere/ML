@@ -1,4 +1,4 @@
-""" 			  		 			     			  	   		   	  			  	
+"""
 Models Base.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
@@ -51,6 +51,10 @@ class _baseNetwork:
         # TODO:                                                                     #
         #    1) Calculate softmax scores of input images                            #
         #############################################################################
+        e = np.exp(scores)
+        s = np.sum(e, axis=1)
+        s = s.reshape(s.shape[0], 1)
+        prob = e/s
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -88,6 +92,9 @@ class _baseNetwork:
         # TODO:                                                                     #
         #    1) Implement the accuracy function                                     #
         #############################################################################
+        amax = np.argmax(x_pred, axis=1)
+        match_total = amax[amax == y].shape[0]
+        acc = match_total/y.shape[0]
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -106,6 +113,7 @@ class _baseNetwork:
         #############################################################################
         # TODO: Comput the sigmoid activation on the input                          #
         #############################################################################
+        out = 1/(1 + np.exp(-X))
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -123,6 +131,7 @@ class _baseNetwork:
         # TODO:                                                                     #
         #    1) Implement the derivative of Sigmoid function                        #
         #############################################################################
+        ds = self.sigmoid(x)*(1 - self.sigmoid(x))
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -141,6 +150,7 @@ class _baseNetwork:
         #############################################################################
         # TODO: Comput the ReLU activation on the input                          #
         #############################################################################
+        out = np.maximum(0, X)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -159,6 +169,7 @@ class _baseNetwork:
         #############################################################################
         # TODO: Comput the gradient of ReLU activation                              #
         #############################################################################
+        out = (self.ReLU(X) != 0).astype(int)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
