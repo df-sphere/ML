@@ -74,6 +74,10 @@ class _baseNetwork:
         # TODO:                                                                     #
         #    1) Implement Cross-Entropy Loss                                        #
         #############################################################################
+        x = -np.log(x_pred)
+        x_rows_idx = np.arange(x.shape[0])
+        loss = x[x_rows_idx, y]
+        loss = loss.mean()
 
         #############################################################################
         #                              END OF YOUR CODE                             #
