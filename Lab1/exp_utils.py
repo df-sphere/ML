@@ -196,8 +196,6 @@ def train(epoch, batched_train_data, batched_train_label, model, optimizer, debu
     epoch_loss /= len(batched_train_data)
     epoch_acc = hits / count_samples
 
-    if debug:
-        print("* Average Accuracy of Epoch {} is: {:.4f}".format(epoch, epoch_acc))
     return epoch_loss, epoch_acc
 
 
@@ -231,7 +229,7 @@ def evaluate(batched_test_data, batched_test_label, model, debug=True):
     return epoch_loss, epoch_acc
 
 
-def plot_curves(train_loss_history, train_acc_history, valid_loss_history, valid_acc_history):
+def plot_curves(train_loss_history, train_acc_history, valid_loss_history, valid_acc_history, lr, reg, hidden_size):
     """
     Plot learning curves with matplotlib. Make sure training loss and validation loss are plot in the same figure and
     training accuracy and validation accuracy are plot in the same figure too.
@@ -259,8 +257,10 @@ def plot_curves(train_loss_history, train_acc_history, valid_loss_history, valid
         plt.savefig(filename)
         plt.close()
 
-    plot(train_loss_history, valid_loss_history, 'train', 'valid', 'Epochs', 'Loss', 'Loss Curve', 'plots/loss_curve.png')
-    plot(train_acc_history, valid_acc_history, 'train', 'valid', 'Epochs', 'Accuracy', 'Accuracy Curve', 'plots/accuracy_curve.png')
+    title = f'Loss Curve (lr={lr}, reg={reg}, hidden_size={hidden_size})'
+    plot(train_loss_history, valid_loss_history, 'train', 'valid', 'Epochs', 'Loss', title, 'plots/loss_curve.png')
+    title = f'Accuracy Curve (lr={lr}, reg={reg}, hidden_size={hidden_size})'
+    plot(train_acc_history, valid_acc_history, 'train', 'valid', 'Epochs', 'Accuracy', title, 'plots/accuracy_curve.png')
 
     #############################################################################
     #                              END OF YOUR CODE                             #

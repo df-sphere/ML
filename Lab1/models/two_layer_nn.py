@@ -132,8 +132,10 @@ class TwoLayerNet(_baseNetwork):
         """
 
         #              b,o       (h, o)    (b, h)   (b, i)
-        #              [(b,o)@(o,h)]*(b, h)->T->(h, b)@(b, i)->T->(i, h)
-        dloss_dw1 = (((dloss_dz2@dz2_da1.T)*da1_dz1).T@dz1_dw1).T
+        #              [(b,o)@(o,h)]*(b, h)->T->(h, b)
+        dloss_dz1 = ((dloss_dz2@dz2_da1.T)*da1_dz1).T
+        #            (h,b)@(b, i)->T->(i, h)
+        dloss_dw1 = (dloss_dz1@dz1_dw1).T
 
         # (i, h)
         self.gradients['W1'] = dloss_dw1/X.shape[0]
@@ -150,9 +152,8 @@ class TwoLayerNet(_baseNetwork):
 
         dz1_db1 = np.ones((X.shape[0], 1))
 
-        #            (b, o)   (h, o)   (b, h) (?)
-        #           [(b,o)@(o,h)]*(b, h)->T->(h,b)@(b, 1)->(h, 1)
-        dloss_db1 = ((dloss_dz2@dz2_da1.T)*da1_dz1).T@dz1_db1
+        #               (h,b)@(b, 1)->(h, 1)
+        dloss_db1 = dloss_dz1@dz1_db1
         dloss_db1 = dloss_db1.reshape(dloss_db1.shape[0],)
 
         # (h, )

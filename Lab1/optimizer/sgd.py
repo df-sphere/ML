@@ -1,4 +1,4 @@
-""" 			  		 			     			  	   		   	  			  	
+"""
 SGD Optimizer.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)

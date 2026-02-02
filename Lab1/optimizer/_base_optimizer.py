@@ -42,7 +42,8 @@ class _BaseOptimizer:
         #       coefficient                                                         #
         #############################################################################
         for k, v in model.gradients.items():
-            model.gradients[k] += self.reg*model.weights[k]
+            if k.startswith('W'):
+                model.gradients[k] += self.reg*model.weights[k]
 
         #############################################################################
         #                              END OF YOUR CODE                             #

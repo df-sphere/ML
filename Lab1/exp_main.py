@@ -1,4 +1,4 @@
-""" 			  		 			     			  	   		   	  			  	
+"""
 Main function.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
@@ -26,7 +26,7 @@ import copy
 
 from models import TwoLayerNet, SoftmaxRegression
 from optimizer import SGD
-from utils import load_mnist_trainval, load_mnist_test, generate_batched_data, train, evaluate, plot_curves
+from exp_utils import load_mnist_trainval, load_mnist_test, generate_batched_data, train, evaluate, plot_curves
 
 parser = argparse.ArgumentParser(description='CS7643 Assignment-1')
 parser.add_argument('--config', default='./config.yaml')
@@ -35,7 +35,7 @@ parser.add_argument('--config', default='./config.yaml')
 def main():
     train_loss_history, train_acc_history, valid_loss_history, valid_acc_history = run()
 
-    plot_curves(train_loss_history, train_acc_history, valid_loss_history, valid_acc_history)
+    plot_curves(train_loss_history, train_acc_history, valid_loss_history, valid_acc_history, args.learning_rate, args.reg, args.hidden_size)
 
 
 def run():
@@ -65,33 +65,46 @@ def run():
     train_acc_history = []
     valid_loss_history = []
     valid_acc_history = []
-    best_acc = 0.0
+    best_train_acc = 0.0
+    best_valid_acc = 0.0
     best_model = None
     for epoch in range(args.epochs):
 
+        # evaluate on training data
         batched_train_data, batched_train_label = generate_batched_data(train_data, train_label,
                                                                         batch_size=args.batch_size, shuffle=True)
         epoch_loss, epoch_acc = train(epoch, batched_train_data, batched_train_label, model, optimizer, args.debug)
 
         train_loss_history.append(epoch_loss)
         train_acc_history.append(epoch_acc)
+
+        if epoch_acc > best_train_acc:
+            best_train_acc = epoch_acc
+
         # evaluate on test data
         batched_test_data, batched_test_label = generate_batched_data(val_data, val_label, batch_size=args.batch_size)
         valid_loss, valid_acc = evaluate(batched_test_data, batched_test_label, model, args.debug)
-        if args.debug:
-            print("* Validation Accuracy: {accuracy:.4f}".format(accuracy=valid_acc))
 
         valid_loss_history.append(valid_loss)
         valid_acc_history.append(valid_acc)
 
-        if valid_acc > best_acc:
-            best_acc = valid_acc
+        if valid_acc > best_valid_acc:
+            best_valid_acc = valid_acc
             best_model = copy.deepcopy(model)
+
+        if args.debug:
+            print("* Epoch {}, Training Accuracy: {accuracy:.4f}".format(epoch, accuracy=epoch_acc))
+            print("* Epoch {}, Validation Accuracy: {accuracy:.4f}".format(epoch, accuracy=valid_acc))
 
     batched_test_data, batched_test_label = generate_batched_data(test_data, test_label, batch_size=args.batch_size)
     _, test_acc = evaluate(batched_test_data, batched_test_label, best_model)  # test the best model
+
     if args.debug:
-        print("Final Accuracy on Test Data: {accuracy:.4f}".format(accuracy=test_acc))
+        print("* Final Best Training Accuracy: {accuracy:.4f}".format(accuracy=best_train_acc))
+        print("* Final Training Accuracy: {accuracy:.4f}".format(accuracy=epoch_acc))
+        print("* Final Best Training Accuracy: {accuracy:.4f}".format(accuracy=best_valid_acc))
+        print("* Final Validation Accuracy: {accuracy:.4f}".format(accuracy=valid_acc))
+        print("* Final Test Accuracy: {accuracy:.4f}".format(accuracy=test_acc))
 
     return train_loss_history, train_acc_history, valid_loss_history, valid_acc_history
 
