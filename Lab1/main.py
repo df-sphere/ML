@@ -1,4 +1,4 @@
-""" 			  		 			     			  	   		   	  			  	
+"""
 Main function.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
@@ -69,17 +69,17 @@ def run():
     best_model = None
     for epoch in range(args.epochs):
 
+        # evaluate on training data
         batched_train_data, batched_train_label = generate_batched_data(train_data, train_label,
                                                                         batch_size=args.batch_size, shuffle=True)
         epoch_loss, epoch_acc = train(epoch, batched_train_data, batched_train_label, model, optimizer, args.debug)
 
         train_loss_history.append(epoch_loss)
         train_acc_history.append(epoch_acc)
+
         # evaluate on test data
         batched_test_data, batched_test_label = generate_batched_data(val_data, val_label, batch_size=args.batch_size)
         valid_loss, valid_acc = evaluate(batched_test_data, batched_test_label, model, args.debug)
-        if args.debug:
-            print("* Validation Accuracy: {accuracy:.4f}".format(accuracy=valid_acc))
 
         valid_loss_history.append(valid_loss)
         valid_acc_history.append(valid_acc)
@@ -88,10 +88,17 @@ def run():
             best_acc = valid_acc
             best_model = copy.deepcopy(model)
 
+        if args.debug:
+            print("* Epoch {}, Training Accuracy: {accuracy:.4f}".format(epoch, accuracy=epoch_acc))
+            print("* Epoch {}, Validation Accuracy: {accuracy:.4f}".format(epoch, accuracy=valid_acc))
+
     batched_test_data, batched_test_label = generate_batched_data(test_data, test_label, batch_size=args.batch_size)
     _, test_acc = evaluate(batched_test_data, batched_test_label, best_model)  # test the best model
+
     if args.debug:
-        print("Final Accuracy on Test Data: {accuracy:.4f}".format(accuracy=test_acc))
+        print("* Final Training Accuracy: {accuracy:.4f}".format(accuracy=epoch_acc))
+        print("* Final Validation Accuracy: {accuracy:.4f}".format(accuracy=valid_acc))
+        print("* Final Test Accuracy: {accuracy:.4f}".format(accuracy=test_acc))
 
     return train_loss_history, train_acc_history, valid_loss_history, valid_acc_history
 

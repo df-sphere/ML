@@ -196,8 +196,6 @@ def train(epoch, batched_train_data, batched_train_label, model, optimizer, debu
     epoch_loss /= len(batched_train_data)
     epoch_acc = hits / count_samples
 
-    if debug:
-        print("* Average Accuracy of Epoch {} is: {:.4f}".format(epoch, epoch_acc))
     return epoch_loss, epoch_acc
 
 
