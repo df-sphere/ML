@@ -244,23 +244,29 @@ def plot_curves(train_loss_history, train_acc_history, valid_loss_history, valid
     #    1) Plot learning curves of training and validation loss                #
     #    2) Plot learning curves of training and validation accuracy            #
     #############################################################################
-    def plot(y1, y2, y1_legend, y2_legend, x_axis_label, y_axis_label, title, filename):
-        plt.figure()
-        x = [i for i in range(len(y1))]
-        plt.plot(x, y1, label=y1_legend)
-        plt.plot(x, y2, label=y2_legend)
-        plt.xlabel(x_axis_label)
-        plt.ylabel(y_axis_label)
-        plt.title(title)
-        plt.xticks(x)
-        plt.legend()
-        plt.savefig(filename)
-        plt.close()
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5))
+    x = [i for i in range(len(train_loss_history))]
 
-    title = f'Loss Curve (lr={lr}, reg={reg}, hidden_size={hidden_size})'
-    plot(train_loss_history, valid_loss_history, 'train', 'valid', 'Epochs', 'Loss', title, 'plots/loss_curve.png')
-    title = f'Accuracy Curve (lr={lr}, reg={reg}, hidden_size={hidden_size})'
-    plot(train_acc_history, valid_acc_history, 'train', 'valid', 'Epochs', 'Accuracy', title, 'plots/accuracy_curve.png')
+    ax1.plot(x, train_loss_history, label='train')
+    ax1.plot(x, valid_loss_history, label='valid')
+    ax1.set_xlabel('Epochs')
+    ax1.set_ylabel('Loss')
+    ax1.set_title('Loss Curve')
+    ax1.set_xticks(x)
+    ax1.legend()
+
+    ax2.plot(x, train_acc_history, label='train')
+    ax2.plot(x, valid_acc_history, label='valid')
+    ax2.set_xlabel('Epochs')
+    ax2.set_ylabel('Accuracy')
+    ax2.set_title('Accuracy Curve')
+    ax2.set_xticks(x)
+    ax2.legend()
+
+    fig.suptitle(f'lr={lr}, reg={reg}, hidden_size={hidden_size}', fontsize=14)
+    plt.tight_layout()
+    plt.savefig('plots/learning_curves.png')
+    plt.close()
 
     #############################################################################
     #                              END OF YOUR CODE                             #
