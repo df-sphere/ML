@@ -1,4 +1,4 @@
-""" 			  		 			     			  	   		   	  			  	
+"""
 Optimizer and MLP training Tests.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
@@ -77,9 +77,10 @@ class TestTraining(unittest.TestCase):
 
         batched_test_data, batched_test_label = generate_batched_data(test_data, test_label, batch_size=128)
         _, test_acc = evaluate(batched_test_data, batched_test_label, model, debug=False)
+
+        print("debugxz....... train_acc: ", train_acc, " expected: 0.3")
         self.assertGreater(train_acc, 0.3)
         self.assertGreater(test_acc, 0.3)
-        print("debugxz....... train_acc: ", train_acc, " expected: 0.3")
 
     def test_two_layer_train(self):
         model = TwoLayerNet(hidden_size=128)
@@ -93,5 +94,7 @@ class TestTraining(unittest.TestCase):
 
         batched_test_data, batched_test_label = generate_batched_data(test_data, test_label, batch_size=32)
         _, test_acc = evaluate(batched_test_data, batched_test_label, model, debug=False)
+
+        print("debugxz....... train_acc: ", train_acc, " expected: 0.3")
         self.assertGreater(train_acc, 0.3)
         self.assertGreater(test_acc, 0.3)

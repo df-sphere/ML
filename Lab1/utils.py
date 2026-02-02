@@ -131,24 +131,27 @@ def generate_batched_data(data, label, batch_size=32, shuffle=False, seed=None):
     #    batch size                                                             #
     #############################################################################
 
-    def generate_batch(x, batch_size, shuffle = False):
-        if shuffle:
-            random.shuffle(x)
-    
+    def generate_batch(x, batch_size, shuffle, idx):
+        #if shuffle:
+        x = [x[i] for i in idx]
+
         l_batch = []
         s = 0
         while (s < len(x) - batch_size):
           nx = np.array(x[s:s+batch_size])
           l_batch.append(nx)
           s += batch_size
-    
+
         nx = np.array(x[s:])
         l_batch.append(nx)
-    
+
         return l_batch
 
-    batched_data = generate_batch(data, batch_size, shuffle)
-    batched_label = generate_batch(label, batch_size, shuffle)
+    idx = list(range(len(data)))
+    random.shuffle(idx)
+
+    batched_data = generate_batch(data, batch_size, shuffle, idx)
+    batched_label = generate_batch(label, batch_size, shuffle, idx)
 
     #############################################################################
     #                              END OF YOUR CODE                             #

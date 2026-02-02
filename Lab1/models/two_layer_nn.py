@@ -1,4 +1,4 @@
-""" 			  		 			     			  	   		   	  			  	
+"""
 MLP Model.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
@@ -85,6 +85,13 @@ class TwoLayerNet(_baseNetwork):
         #    2) Compute Cross-Entropy Loss and batch accuracy based on network      #
         #       outputs                                                             #
         #############################################################################
+        z1 = X@self.weights['W1'] + self.weights['b1']
+        a1 = self.sigmoid(z1)
+        z2 = a1@self.weights['W2'] + self.weights['b2']
+        a2 = self.softmax(z2)
+
+        loss = self.cross_entropy_loss(a2, y)
+        accuracy = self.compute_accuracy(a2, y)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -100,8 +107,66 @@ class TwoLayerNet(_baseNetwork):
         #          You may also want to implement the analytical derivative of      #
         #          the sigmoid function in self.sigmoid_dev first                   #
         #############################################################################
-        loss = 1
-        accuracy = 0.1
+        dloss_dz2 = self.softmax(z2) - self.y_one_hot[y]
+        dz2_da1 = self.weights['W2']
+        da1_dz1 = self.sigmoid_dev(z1)
+        dz1_dw1 = X
+
+        """
+        Shapes:
+        X: (32, 784), (b, i)
+        y: (32,), (b, )
+        a1: (32, 128), (b, h)
+        W1: (784, 128), (i, h)
+        b1: (128,), (h, )
+        W2: (128, 10), (h, o)
+        b2: (10,), (o, )
+        dloss_dz2: (32, 10), (b, o)
+        dz2_da1: (128, 10),  (h, o)
+        da1_dz1: (32, 128),  (b, h)
+        dz1_dw1: (32, 784),  (b, i)
+        input = 784
+        hidden  = 128
+        output = 10
+        batch = 32
+        """
+
+        #              b,o       (h, o)    (b, h)   (b, i)
+        #              [(b,o)@(o,h)]*(b, h)->T->(h, b)@(b, i)->T->(i, h)
+        dloss_dw1 = (((dloss_dz2@dz2_da1.T)*da1_dz1).T@dz1_dw1).T
+
+        # (i, h)
+        self.gradients['W1'] = dloss_dw1/X.shape[0]
+
+        # (b, h)
+        dz2_dw2 = a1
+
+        #            (b, o)  (b, h)
+        #            [(o, b)@(b, h)]->T->(h, o)
+        dloss_dw2 = (dloss_dz2.T@dz2_dw2).T
+
+        # (h, o)
+        self.gradients['W2'] = dloss_dw2/X.shape[0]
+
+        dz1_db1 = np.ones((X.shape[0], 1))
+
+        #            (b, o)   (h, o)   (b, h) (?)
+        #           [(b,o)@(o,h)]*(b, h)->T->(h,b)@(b, 1)->(h, 1)
+        dloss_db1 = ((dloss_dz2@dz2_da1.T)*da1_dz1).T@dz1_db1
+        dloss_db1 = dloss_db1.reshape(dloss_db1.shape[0],)
+
+        # (h, )
+        self.gradients['b1'] = dloss_db1/X.shape[0]
+
+        dz2_db2 = np.ones((X.shape[0], 1))
+
+        #            (b, o)
+        #            (o, b)@(b, 1)->(o, 1)
+        dloss_db2 = dloss_dz2.T@dz2_db2
+        dloss_db2 = dloss_db2.reshape(dloss_db2.shape[0],)
+
+        # (o, )
+        self.gradients['b2'] = dloss_db2/X.shape[0]
 
         #############################################################################
         #                              END OF YOUR CODE                             #
