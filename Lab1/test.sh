@@ -1,6 +1,6 @@
 #!/bin/sh
 
 conda activate cs7643-a1
-python3 -m unittest tests.test_loading tests.test_activation
-#python3 -m unittest tests.test_loss
+#python3 -m unittest tests.test_loading tests.test_activation tests.test_loss tests.test_network tests.test_training
+python3 -m unittest tests.test_training
 

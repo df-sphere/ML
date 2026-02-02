@@ -1,4 +1,4 @@
-""" 			  		 			     			  	   		   	  			  	
+"""
 Optimizer base.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
@@ -41,6 +41,7 @@ class _BaseOptimizer:
         #    1) Apply L2 penalty to model weights based on the regularization       #
         #       coefficient                                                         #
         #############################################################################
+        model.gradients['W1'] += self.reg*model.weights['W1']
 
         #############################################################################
         #                              END OF YOUR CODE                             #

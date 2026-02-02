@@ -100,6 +100,8 @@ class TwoLayerNet(_baseNetwork):
         #          You may also want to implement the analytical derivative of      #
         #          the sigmoid function in self.sigmoid_dev first                   #
         #############################################################################
+        loss = 1
+        accuracy = 0.1
 
         #############################################################################
         #                              END OF YOUR CODE                             #

@@ -28,6 +28,7 @@ class _baseNetwork:
     def __init__(self, input_size=28 * 28, num_classes=10):
         self.input_size = input_size
         self.num_classes = num_classes
+        self.y_one_hot = np.eye(10)
 
         self.weights = dict()
         self.gradients = dict()

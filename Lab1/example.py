@@ -67,3 +67,5 @@ def test_accuracy():
 #test_validation()
 test_accuracy()
 
+def one_hotvector():
+    np.argmax

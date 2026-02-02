@@ -67,8 +67,13 @@ class SoftmaxRegression(_baseNetwork):
         # Hint:                                                                     #
         #   Store your intermediate outputs before ReLU for backwards               #
         #############################################################################
-        #accuracy = num_correct_pred/batch_size
-        #pred = argmax_i output_i (unnormalized works)
+        m = X@self.weights['W1'] # (N, In)x(In, Out) = N, Out
+        r = self.ReLU(m)
+        s = self.softmax(r)
+
+        loss = self.cross_entropy_loss(s, y)
+        accuracy = self.compute_accuracy(r, y)
+
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
@@ -81,6 +86,17 @@ class SoftmaxRegression(_baseNetwork):
         #        1) Compute gradients of each weight by chain rule                  #
         #        2) Store the gradients in self.gradients                           #
         #############################################################################
+        # dL/dx1n1 = s(r(m) - 1)reludev(m)w1
+        #for c in range(self.num_classes):
+        #    self.gradients['W1'][c] = self.weights['W1'][c].T@self.ReLU_dev(m)@(s - 1).T
+        # w.shape:  (10,)
+        # rd.shape:  (128, 10)
+        # s.shape:  (10, 128)
+        # output = (10, 1)
+
+        l = (self.softmax(self.ReLU(m)) - self.y_one_hot[y])*self.ReLU_dev(m)
+        #print("dev_loss_avg: ", dev_loss_avg)
+        self.gradients['W1'] = X.T@l/self.input_size
 
         #############################################################################
         #                              END OF YOUR CODE                             #

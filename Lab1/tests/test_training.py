@@ -79,6 +79,7 @@ class TestTraining(unittest.TestCase):
         _, test_acc = evaluate(batched_test_data, batched_test_label, model, debug=False)
         self.assertGreater(train_acc, 0.3)
         self.assertGreater(test_acc, 0.3)
+        print("debugxz....... train_acc: ", train_acc, " expected: 0.3")
 
     def test_two_layer_train(self):
         model = TwoLayerNet(hidden_size=128)
