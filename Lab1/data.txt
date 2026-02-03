@@ -1,0 +1,72 @@
+64
+* Best Training Accuracy: 0.9256                                                                                                                                                                                                       
+* Best Validation Accuracy: 0.9299                                                                                                                                                                                                     
+* Final Training Accuracy: 0.9256                                                                                                                                                                                                      
+* Final Validation Accuracy: 0.9299                                                                                                                                                                                                    
+* Final Test Accuracy: 0.9282 
+
+10
+* Best Training Accuracy: 0.9107
+* Best Validation Accuracy: 0.9142
+* Final Training Accuracy: 0.9107
+* Final Validation Accuracy: 0.9142
+* Final Test Accuracy: 0.9164
+
+5
+* Best Training Accuracy: 0.8308
+* Best Validation Accuracy: 0.8498
+* Final Training Accuracy: 0.8308
+* Final Validation Accuracy: 0.8498
+* Final Test Accuracy: 0.8407
+
+1
+* Best Training Accuracy: 0.2633
+* Best Validation Accuracy: 0.2557
+* Final Training Accuracy: 0.2504
+* Final Validation Accuracy: 0.2557
+* Final Test Accuracy: 0.2601
+
+lr = 1.2
+* Best Training Accuracy: 0.9429
+* Best Validation Accuracy: 0.9515
+* Final Training Accuracy: 0.9429
+* Final Validation Accuracy: 0.9451
+* Final Test Accuracy: 0.9508
+
+lr = 10
+* Best Training Accuracy: 0.7450
+* Best Validation Accuracy: 0.8527
+* Final Training Accuracy: 0.7231
+* Final Validation Accuracy: 0.8167
+* Final Test Accuracy: 0.841
+
+Train:
+  batch_size: 64
+  learning_rate: 2.5
+  reg: 0.0001
+  epochs: 10
+  momentum: 0.9
+  debug: True
+
+Model:
+  type: TwoLayerNet # SoftmaxRegression or TwoLayerNet
+  hidden_size: 128 # only applicable for TwolayerNet
+* Best Training Accuracy: 0.9646
+* Best Validation Accuracy: 0.9625
+* Final Training Accuracy: 0.9646
+* Final Validation Accuracy: 0.9563
+* Final Test Accuracy: 0.9585
+
+same as above but learning_rate = 5.0
+* Best Training Accuracy: 0.9442
+* Best Validation Accuracy: 0.9495
+* Final Training Accuracy: 0.9442
+* Final Validation Accuracy: 0.9495
+* Final Test Accuracy: 0.9509
+
+same as above with 1.8
+* Best Training Accuracy: 0.9796
+* Best Validation Accuracy: 0.9685
+* Final Training Accuracy: 0.9796
+* Final Validation Accuracy: 0.9634
+* Final Test Accuracy: 0.9678
