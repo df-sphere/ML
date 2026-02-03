@@ -100,9 +100,9 @@ def run():
     _, test_acc = evaluate(batched_test_data, batched_test_label, best_model)  # test the best model
 
     if args.debug:
-        print("* Final Best Training Accuracy: {accuracy:.4f}".format(accuracy=best_train_acc))
+        print("* Best Training Accuracy: {accuracy:.4f}".format(accuracy=best_train_acc))
+        print("* Best Validation Accuracy: {accuracy:.4f}".format(accuracy=best_valid_acc))
         print("* Final Training Accuracy: {accuracy:.4f}".format(accuracy=epoch_acc))
-        print("* Final Best Training Accuracy: {accuracy:.4f}".format(accuracy=best_valid_acc))
         print("* Final Validation Accuracy: {accuracy:.4f}".format(accuracy=valid_acc))
         print("* Final Test Accuracy: {accuracy:.4f}".format(accuracy=test_acc))
 
