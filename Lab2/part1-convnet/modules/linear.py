@@ -63,6 +63,12 @@ class Linear:
         # TODO: Implement the forward pass.                                         #
         #    HINT: You may want to flatten the input first                          #
         #############################################################################
+        #print("x shape: ", x.shape)
+        #print("weights shape: ", self.weight.shape)
+        #print("weights shape: ", self.bias.shape, "\n")
+        # 2, 120
+        x_s = x.reshape(x.shape[0], np.prod(x.shape[1:]))
+        out = x_s@self.weight + self.bias
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -80,6 +86,19 @@ class Linear:
         #############################################################################
         # TODO: Implement the linear backward pass.                                 #
         #############################################################################
+        print("dout.shape: ", dout.shape)
+        print("x shape: ", x.shape)
+        print("weights shape: ", self.weight.shape)
+        print("b shape: ", self.bias.shape, "\n")
+        x_s = x.reshape(x.shape[0], np.prod(x.shape[1:]))
+        self.dw = x_s.T@dout
+        self.dx = dout@self.weight.T
+        self.dx = self.dx.reshape(x.shape)
+        print("x_s shape: ", x_s.shape)
+        print("dx shape: ", self.dx.shape)
+        i = np.ones((1, 10))
+        self.db = (i@dout).T
+        self.db = self.db.reshape(self.db.shape[0])
 
         #############################################################################
         #                              END OF YOUR CODE                             #
