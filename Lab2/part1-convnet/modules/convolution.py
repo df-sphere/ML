@@ -21,6 +21,7 @@ prohibited and subject to being investigated as a GT honor code violation.
 """
 
 import numpy as np
+from numpy.lib.stride_tricks import sliding_window_view
 
 def hello_do_you_copy():
     """
@@ -75,6 +76,24 @@ class Conv2D:
         # Hint: 1) You may use np.pad for padding.                                  #
         #       2) You may implement the convolution with loops                     #
         #############################################################################
+        p = self.padding
+        x = np.pad(x, pad_width=((0, 0), (0, 0), (p, p), (p, p)), constant_values=0)
+        sw = sliding_window_view(x, window_shape=(self.kernel_size, self.kernel_size), axis=(2, 3))
+        sw = sw[:, :, ::self.stride, ::self.stride, :, :]
+        # sw -> (n, c, hp, wp, k, k)
+
+        #print("stride: ", p)
+        #print("sw shape: ", sw.shape)
+        #print("w shape: ", self.weight.shape)
+
+        out = np.tensordot(sw, self.weight, axes=([1, 4, 5], [1, 2, 3]))
+        # sw 0, 2, 3 and w 0 are the end result
+        # out -> (n, hp, wp, o)
+        # set to (n, o, h, w)
+        out  = np.transpose(out, (0,3,1,2))
+
+        # add bias per output channel
+        out = out + self.bias[None, :, None, None]
 
         #############################################################################
         #                              END OF YOUR CODE                             #
