@@ -21,6 +21,7 @@ prohibited and subject to being investigated as a GT honor code violation.
 """
 
 import numpy as np
+from numpy.lib.stride_tricks import sliding_window_view
 
 def hello_do_you_copy():
     """
@@ -52,6 +53,18 @@ class MaxPooling:
         # Hint:                                                                     #
         #       1) You may implement the process with loops                         #
         #############################################################################
+        # axis should be the last two in x's shape
+        sw = sliding_window_view(x, window_shape=(self.kernel_size, self.kernel_size), axis=(2, 3))
+        # sw -> (n, c, hp, wp, k, k)
+
+        # hp, wp
+        H_out = sw.shape[2]
+        W_out = sw.shape[3]
+
+        sw = sw[:, :, ::self.stride, ::self.stride, :, :]
+
+        # stride over k, k, the last two
+        out = np.max(sw, axis=(4, 5))
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -72,6 +85,45 @@ class MaxPooling:
         #       1) You may implement the process with loops                         #
         #       2) You may find np.unravel_index useful                             #
         #############################################################################
+
+        # keep track of real indexes via _indx matrices
+
+        x_indx = np.arange(np.prod(x.shape)).reshape(x.shape)
+        k_size = self.kernel_size
+        sw_indx = sliding_window_view(x_indx, window_shape=(k_size, k_size), axis=(2, 3))
+        s = self.stride
+        sw_indx = sw_indx[:, :, ::s, ::s, :, :]
+
+        sw = sliding_window_view(x, window_shape=(k_size, k_size), axis=(2, 3))
+        sw = sw[:, :, ::s, ::s, :, :]
+
+        #print("stride: ", s)
+        #print("sw shape: ", sw.shape)
+        #print("sw_indx shape: ", sw_indx.shape)
+        #print("sw: ", sw)
+        #print("sw_indx: ", sw_indx)
+
+        total = np.prod(sw.shape)
+        m = sw.reshape((int(total/(k_size**2)), k_size**2))
+        m_indx = sw_indx.reshape((int(total/(k_size**2)), k_size**2))
+
+        #print("m shape: ", m.shape)
+        #print("m_indx shape: ", m_indx.shape)
+        #print("m_indx: ", m_indx)
+
+        # receptive field argmax per row
+        amax = np.argmax(m, axis=1)
+        #print("amax: ", amax)
+        rows = np.arange(m.shape[0])
+        amax_indx = m_indx[rows, amax]
+        #print("amax_indx: ", amax_indx)
+        z = np.zeros(np.prod(x.shape))
+
+        dout = dout.flatten()
+        for i, d in enumerate(dout):
+            z[amax_indx[i]] += d
+
+        self.dx = z.reshape(x.shape)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
