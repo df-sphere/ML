@@ -96,7 +96,7 @@ class Linear:
         self.dx = self.dx.reshape(x.shape)
         print("x_s shape: ", x_s.shape)
         print("dx shape: ", self.dx.shape)
-        i = np.ones((1, 10))
+        i = np.ones((1, dout.shape[0]))
         self.db = (i@dout).T
         self.db = self.db.reshape(self.db.shape[0])
 

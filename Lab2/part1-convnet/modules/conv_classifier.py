@@ -25,6 +25,7 @@ from .relu import ReLU
 from .max_pool import MaxPooling
 from .convolution import Conv2D
 from .linear import Linear
+import numpy as np
 
 def hello_do_you_copy():
     """
@@ -83,6 +84,22 @@ class ConvNet:
         #    1) Implement forward pass of the model                                 #
         #############################################################################
 
+        y_p = x
+        for m in self.modules:
+            y_p = m.forward(y_p)
+
+        #e = np.exp(y_p)
+        #s = np.sum(e, axis = 1)
+        #s = s.reshape(s.shape[0], 1)
+        #probs = e/s
+
+        #l = -np.log(probs)
+        #l_indx = np.arange(l.shape[0])
+        #l = l[l_indx, y]
+        #loss = l.mean()
+
+        probs, loss  = self.criterion.forward(y_p, y)
+
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
@@ -97,6 +114,12 @@ class ConvNet:
         # TODO:                                                                     #
         #    1) Implement backward pass of the model                                #
         #############################################################################
+
+        self.criterion.backward()
+        dx = self.criterion.dx
+        for m in reversed(self.modules):
+            m.backward(dx)
+            dx = m.dx
 
         #############################################################################
         #                              END OF YOUR CODE                             #
