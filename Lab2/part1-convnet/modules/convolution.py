@@ -77,8 +77,8 @@ class Conv2D:
         #       2) You may implement the convolution with loops                     #
         #############################################################################
         p = self.padding
-        x = np.pad(x, pad_width=((0, 0), (0, 0), (p, p), (p, p)), constant_values=0)
-        sw = sliding_window_view(x, window_shape=(self.kernel_size, self.kernel_size), axis=(2, 3))
+        sw_p = np.pad(x, pad_width=((0, 0), (0, 0), (p, p), (p, p)), constant_values=0)
+        sw = sliding_window_view(sw_p, window_shape=(self.kernel_size, self.kernel_size), axis=(2, 3))
         sw = sw[:, :, ::self.stride, ::self.stride, :, :]
         # sw -> (n, c, hp, wp, k, k)
 
@@ -108,12 +108,74 @@ class Conv2D:
         :return: nothing but dx, dw, and db of self should be updated
         """
         x = self.cache
+
         #############################################################################
         # TODO: Implement the convolution backward pass.                            #
         # Hint:                                                                     #
         #       1) You may implement the convolution with loops                     #
         #       2) don't forget padding when computing dx                           #
         #############################################################################
+
+        # keep track of real indexes via _indx matrices
+
+        p = self.padding
+        x_pad = np.pad(x, pad_width=((0, 0), (0, 0), (p, p), (p, p)), constant_values=0)
+
+        x_indx = np.arange(np.prod(x_pad.shape)).reshape(x_pad.shape)
+        k_size = self.kernel_size
+        sw_indx = sliding_window_view(x_indx, window_shape=(k_size, k_size), axis=(2, 3))
+        s = self.stride
+        sw_indx = sw_indx[:, :, ::s, ::s, :, :]
+
+        sw = sliding_window_view(x_pad, window_shape=(k_size, k_size), axis=(2, 3))
+        sw = sw[:, :, ::s, ::s, :, :]
+
+        
+        # dw calculation:
+
+        dw = np.tensordot(sw, dout, axes=([0, 2, 3], [0, 2, 3]))
+        self.dw  = np.transpose(dw, (3,0,1,2))
+
+        
+        # dx calculation:
+
+        # dx = dout . weight, dot product on common axis
+        dxm = np.tensordot(dout, self.weight, axes=([1], [0]))
+        # dx shape (4, 5, 5, 3, 3, 3)
+
+        # to match sw_indx shape
+        dxm = np.transpose(dxm, (0, 3, 1, 2, 4, 5))
+
+        #create a index matrix for dx that matches x
+        sw = sw.flatten()
+        dxm = dxm.flatten()
+        sw_indx = sw_indx.flatten()
+
+        self.dx = np.zeros(x_pad.shape).flatten()
+        for i in range(dxm.shape[0]):
+            indx = sw_indx[i]
+            self.dx[indx] += dxm[i]
+
+        # remove pad
+        self.dx = self.dx.reshape(x_pad.shape)
+        if p > 0:
+            self.dx = self.dx[:, :, p:-p, p:-p]
+
+        
+        # db calculation:
+
+        self.db = np.sum(dout, axis=(0, 2, 3))
+
+        print("dout shape", dout.shape)
+        print("weight shape", self.weight.shape)
+        print("x shape", x.shape)
+        print("bias shape", self.bias.shape)
+        print("sw shape", sw.shape)
+        print("sw_indx shape", sw_indx.shape)
+        print("dw shape", self.dw.shape)
+        print("sw_indx shape", sw_indx.shape)
+        print("dxm shape", dxm.shape)
+        print("sw_indx shape", sw_indx.shape)
 
         #############################################################################
         #                              END OF YOUR CODE                             #

@@ -71,3 +71,18 @@ class TestConv(unittest.TestCase):
         diff = rel_error(out, correct_out)
         self.assertAlmostEqual(diff, 0, places=7)
 
+    def test_backward(self):
+        x = np.random.randn(4, 3, 5, 5)
+        w = np.random.randn(2, 3, 3, 3)
+        b = np.random.randn(2, )
+        dout = np.random.randn(4, 2, 5, 5)
+
+        dx_num = eval_numerical_gradient_array(lambda x: self._conv_forward(x, w, b, 3, 2, 3, 1, 1), x, dout)
+        dw_num = eval_numerical_gradient_array(lambda w: self._conv_forward(x, w, b, 3, 2, 3, 1, 1), w, dout)
+        db_num = eval_numerical_gradient_array(lambda b: self._conv_forward(x, w, b, 3, 2, 3, 1, 1), b, dout)
+
+        dx, dw, db = self._conv_backward(x, w, b, dout, 3, 2, 3, 1, 1)
+
+        self.assertAlmostEqual(rel_error(dx, dx_num), 0, places=6)
+        self.assertAlmostEqual(rel_error(dw, dw_num), 0, places=6)
+        self.assertAlmostEqual(rel_error(db, db_num), 0, places=6)
