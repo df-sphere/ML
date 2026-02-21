@@ -33,6 +33,7 @@ class SGD(_BaseOptimizer):
     def __init__(self, model, learning_rate=1e-4, reg=1e-3, momentum=0.9):
         super().__init__(model, learning_rate, reg)
         self.momentum = momentum
+        self.v = {}
 
     def update(self, model):
         """
@@ -48,7 +49,10 @@ class SGD(_BaseOptimizer):
                 # TODO:                                                                     #
                 #    1) Momentum updates for weights                                        #
                 #############################################################################
-                pass
+                idn = id(m)
+                self.v[idn]['weight'] = self.momentum*self.v.setdefault(idn, {}).get('weight', 0) - self.learning_rate*m.dw
+                m.weight += self.v[idn]['weight']
+
                 #############################################################################
                 #                              END OF YOUR CODE                             #
                 #############################################################################
@@ -57,7 +61,10 @@ class SGD(_BaseOptimizer):
                 # TODO:                                                                     #
                 #    1) Momentum updates for bias                                           #
                 #############################################################################
-                pass
+                idn = id(m)
+                self.v[idn]['bias'] = self.momentum*self.v.setdefault(idn, {}).get('bias', 0) - self.learning_rate*m.db
+                m.bias += self.v[idn]['bias']
+
                 #############################################################################
                 #                              END OF YOUR CODE                             #
                 #############################################################################
