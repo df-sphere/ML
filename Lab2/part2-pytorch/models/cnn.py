@@ -40,6 +40,16 @@ class VanillaCNN(nn.Module):
         #       Conv: 7x7 kernel, stride 1 and no padding                           #
         #       Max Pooling: 2x2 kernel, stride 2                                   #
         #############################################################################
+        self.conv = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=7, stride=1, padding=0)
+        # assuming is always cidar10 shape 3, 32, 32
+        # self.conv.shape = N, 32_ch, 32_w - 7_k + 1 = 26, 26
+
+        self.relu = nn.ReLU()
+
+        self.max_pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        # self.max_pool.shape = N, 32_ch, (26_w - 2k)/2_s + 1 = 13, 13
+
+        self.fc = nn.Linear(32*13*13, 10)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -50,6 +60,12 @@ class VanillaCNN(nn.Module):
         #############################################################################
         # TODO: Implement forward pass of the network                               #
         #############################################################################
+        outs = self.conv(x)
+        outs = self.relu(outs)
+        outs = self.max_pool(outs)
+        # must be flattened since fc expects N batches, flattened input
+        outs = outs.reshape(outs.shape[0], -1)
+        outs = self.fc(outs)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
