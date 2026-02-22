@@ -1,5 +1,5 @@
 """
-MyModel model.  (c) 2021 Georgia Tech
+Vanilla CNN model.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
 Atlanta, Georgia 30332
@@ -29,39 +29,27 @@ def hello_do_you_copy():
     This is a sample function that we will try to import and run to ensure that
     our environment is correctly set up on Google Colab.
     """
-    print("Roger that from my_model.py!")
+    print("Roger that from cnn.py!")
 
 
-class MyModel(nn.Module):
+class VanillaCNN(nn.Module):
     def __init__(self):
         super().__init__()
         #############################################################################
-        # TODO: Initialize the network weights                                      #
+        # TODO: Initialize the Vanilla CNN                                          #
+        #       Conv: 7x7 kernel, stride 1 and no padding                           #
+        #       Max Pooling: 2x2 kernel, stride 2                                   #
         #############################################################################
-        # 2 VGG
-        # 1: 3 -> 64 ch (32x32 -> 16x16)
-        # 2: 64 -> 128 ch (16x16 -> 8x8)
+        self.conv = nn.Conv2d(in_channels=3, out_channels=32, kernel_size=7, stride=1, padding=0)
+        # assuming is always cidar10 shape 3, 32, 32
+        # self.conv.shape = N, 32_ch, 32_w - 7_k + 1 = 26, 26
 
         self.relu = nn.ReLU()
 
-        # segment 1
-        self.conv1_1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
-        self.bn1_1 = nn.BatchNorm2d(64)
-        self.conv2_1 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
-        self.bn2_1 = nn.BatchNorm2d(64)
-        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.max_pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        # self.max_pool.shape = N, 32_ch, (26_w - 2k)/2_s + 1 = 13, 13
 
-        # segment 2
-        self.conv1_2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        self.bn1_2 = nn.BatchNorm2d(128)
-        self.conv2_2 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
-        self.bn2_2 = nn.BatchNorm2d(128)
-        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        # classify
-        self.fc1 = nn.Linear(128 * 8 * 8, 512)
-        self.dropout = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(512, 10)
+        self.fc = nn.Linear(32*13*13, 10)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -72,38 +60,15 @@ class MyModel(nn.Module):
         #############################################################################
         # TODO: Implement forward pass of the network                               #
         #############################################################################
-
-        # segment 1
-        outs = self.conv1_1(x)
-        outs = self.bn1_1(outs)
+        outs = self.conv(x)
         outs = self.relu(outs)
-
-        outs = self.conv2_1(outs)
-        outs = self.bn2_1(outs)
-        outs = self.relu(outs)
-
-        outs = self.pool1(outs)  # 32x32 -> 16x16
-
-        # segment 2
-        outs = self.conv1_2(outs)
-        outs = self.bn1_2(outs)
-        outs = self.relu(outs)
-
-        outs = self.conv2_2(outs)
-        outs = self.bn2_2(outs)
-        outs = self.relu(outs)
-
-        outs = self.pool2(outs)  # 16x16 -> 8x8
-
-        # classify
+        outs = self.max_pool(outs)
+        # must be flattened since fc expects N batches, flattened input
         outs = outs.reshape(outs.shape[0], -1)
-
-        outs = self.fc1(outs)
-        outs = self.relu(outs)
-        outs = self.dropout(outs)
-        outs = self.fc2(outs)
+        outs = self.fc(outs)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
+
         return outs

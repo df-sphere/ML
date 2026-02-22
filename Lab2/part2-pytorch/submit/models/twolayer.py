@@ -1,5 +1,5 @@
 """
-MyModel model.  (c) 2021 Georgia Tech
+Two Layer Network Model.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
 Atlanta, Georgia 30332
@@ -29,81 +29,40 @@ def hello_do_you_copy():
     This is a sample function that we will try to import and run to ensure that
     our environment is correctly set up on Google Colab.
     """
-    print("Roger that from my_model.py!")
+    print("Roger that from twolayer.py!")
 
 
-class MyModel(nn.Module):
-    def __init__(self):
+class TwoLayerNet(nn.Module):
+    def __init__(self, input_dim, hidden_size, num_classes):
+        """
+        :param input_dim: input feature dimension
+        :param hidden_size: hidden dimension
+        :param num_classes: total number of classes
+        """
         super().__init__()
         #############################################################################
-        # TODO: Initialize the network weights                                      #
+        # TODO: Initialize the TwoLayerNet, use sigmoid activation between layers   #
         #############################################################################
-        # 2 VGG
-        # 1: 3 -> 64 ch (32x32 -> 16x16)
-        # 2: 64 -> 128 ch (16x16 -> 8x8)
-
-        self.relu = nn.ReLU()
-
-        # segment 1
-        self.conv1_1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
-        self.bn1_1 = nn.BatchNorm2d(64)
-        self.conv2_1 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
-        self.bn2_1 = nn.BatchNorm2d(64)
-        self.pool1 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        # segment 2
-        self.conv1_2 = nn.Conv2d(64, 128, kernel_size=3, padding=1)
-        self.bn1_2 = nn.BatchNorm2d(128)
-        self.conv2_2 = nn.Conv2d(128, 128, kernel_size=3, padding=1)
-        self.bn2_2 = nn.BatchNorm2d(128)
-        self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        # classify
-        self.fc1 = nn.Linear(128 * 8 * 8, 512)
-        self.dropout = nn.Dropout(0.5)
-        self.fc2 = nn.Linear(512, 10)
-
+        self.flatten = nn.Flatten() 
+        self.linear1 = nn.Linear(input_dim, hidden_size)
+        self.sigmoid = nn.Sigmoid()
+        self.linear2 = nn.Linear(hidden_size, num_classes)
+        
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
 
     def forward(self, x):
-        outs = None
+        out = None
         #############################################################################
         # TODO: Implement forward pass of the network                               #
         #############################################################################
-
-        # segment 1
-        outs = self.conv1_1(x)
-        outs = self.bn1_1(outs)
-        outs = self.relu(outs)
-
-        outs = self.conv2_1(outs)
-        outs = self.bn2_1(outs)
-        outs = self.relu(outs)
-
-        outs = self.pool1(outs)  # 32x32 -> 16x16
-
-        # segment 2
-        outs = self.conv1_2(outs)
-        outs = self.bn1_2(outs)
-        outs = self.relu(outs)
-
-        outs = self.conv2_2(outs)
-        outs = self.bn2_2(outs)
-        outs = self.relu(outs)
-
-        outs = self.pool2(outs)  # 16x16 -> 8x8
-
-        # classify
-        outs = outs.reshape(outs.shape[0], -1)
-
-        outs = self.fc1(outs)
-        outs = self.relu(outs)
-        outs = self.dropout(outs)
-        outs = self.fc2(outs)
+        out = self.flatten(x)
+        out = self.linear1(out) 
+        out = self.sigmoid(out)
+        out = self.linear2(out)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
-        return outs
+        return out
