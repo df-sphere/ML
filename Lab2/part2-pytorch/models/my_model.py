@@ -38,9 +38,10 @@ class MyModel(nn.Module):
         #############################################################################
         # TODO: Initialize the network weights                                      #
         #############################################################################
-        # 2 VGG
+        # VGG
         # 1: 3 -> 64 ch (32x32 -> 16x16)
         # 2: 64 -> 128 ch (16x16 -> 8x8)
+        # 3: 128 -> 256 ch (8x8 -> 4x4)
 
         self.relu = nn.ReLU()
 
@@ -58,8 +59,15 @@ class MyModel(nn.Module):
         self.bn2_2 = nn.BatchNorm2d(128)
         self.pool2 = nn.MaxPool2d(kernel_size=2, stride=2)
 
+        # segment 3
+        self.conv1_3 = nn.Conv2d(128, 256, kernel_size=3, padding=1)
+        self.bn1_3 = nn.BatchNorm2d(256)
+        self.conv2_3 = nn.Conv2d(256, 256, kernel_size=3, padding=1)
+        self.bn2_3 = nn.BatchNorm2d(256)
+        self.pool3 = nn.MaxPool2d(kernel_size=2, stride=2)
+
         # classify
-        self.fc1 = nn.Linear(128 * 8 * 8, 512)
+        self.fc1 = nn.Linear(256 * 4 * 4, 512)
         self.dropout = nn.Dropout(0.5)
         self.fc2 = nn.Linear(512, 10)
 
@@ -94,6 +102,17 @@ class MyModel(nn.Module):
         outs = self.relu(outs)
 
         outs = self.pool2(outs)  # 16x16 -> 8x8
+
+        # segment 3
+        outs = self.conv1_3(outs)
+        outs = self.bn1_3(outs)
+        outs = self.relu(outs)
+
+        outs = self.conv2_3(outs)
+        outs = self.bn2_3(outs)
+        outs = self.relu(outs)
+
+        outs = self.pool3(outs)  # 8x8 -> 4x4
 
         # classify
         outs = outs.reshape(outs.shape[0], -1)

@@ -9,7 +9,7 @@ from models.my_model import MyModel
 
 
 print("="*60)
-print("Testing MyModel (2 Blocks)")
+print("Testing MyModel (3 Blocks)")
 print("="*60)
 
 # Create model
