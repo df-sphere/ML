@@ -313,7 +313,7 @@ class Solver(object):
             #############################################################################
             with torch.inference_mode():
                 output = self.model(data)
-                loss = self.criterion(output, target).item()
+                loss = self.criterion(output, target)
 
             #############################################################################
             #                              END OF YOUR CODE                             #
