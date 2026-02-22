@@ -296,7 +296,13 @@ class Solver(object):
             #       2. Compute batch loss                                               #
             #       3. Compute gradients and update model parameters                    #
             #############################################################################
-            pass
+            output = self.model(data)
+            loss = self.criterion(output, target)
+
+            loss.backward()
+            self.optimizer.step()
+            self.optimizer.zero_grad()
+
             #############################################################################
             #                              END OF YOUR CODE                             #
             #############################################################################
@@ -305,7 +311,10 @@ class Solver(object):
             # TODO: Complete the body of testing  loop                                  #
             #       HINT: torch.inference_mode()                                        #
             #############################################################################
-            pass
+            with torch.inference_mode():
+                output = self.model(data)
+                loss = self.criterion(output, target).item()
+
             #############################################################################
             #                              END OF YOUR CODE                             #
             #############################################################################
