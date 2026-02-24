@@ -130,13 +130,13 @@ class Conv2D:
         sw = sliding_window_view(x_pad, window_shape=(k_size, k_size), axis=(2, 3))
         sw = sw[:, :, ::s, ::s, :, :]
 
-        
+
         # dw calculation:
 
         dw = np.tensordot(sw, dout, axes=([0, 2, 3], [0, 2, 3]))
         self.dw  = np.transpose(dw, (3,0,1,2))
 
-        
+
         # dx calculation:
 
         # dx = dout . weight, dot product on common axis
@@ -161,21 +161,21 @@ class Conv2D:
         if p > 0:
             self.dx = self.dx[:, :, p:-p, p:-p]
 
-        
+
         # db calculation:
 
         self.db = np.sum(dout, axis=(0, 2, 3))
 
-        print("dout shape", dout.shape)
-        print("weight shape", self.weight.shape)
-        print("x shape", x.shape)
-        print("bias shape", self.bias.shape)
-        print("sw shape", sw.shape)
-        print("sw_indx shape", sw_indx.shape)
-        print("dw shape", self.dw.shape)
-        print("sw_indx shape", sw_indx.shape)
-        print("dxm shape", dxm.shape)
-        print("sw_indx shape", sw_indx.shape)
+        #print("dout shape", dout.shape)
+        #print("weight shape", self.weight.shape)
+        #print("x shape", x.shape)
+        #print("bias shape", self.bias.shape)
+        #print("sw shape", sw.shape)
+        #print("sw_indx shape", sw_indx.shape)
+        #print("dw shape", self.dw.shape)
+        #print("sw_indx shape", sw_indx.shape)
+        #print("dxm shape", dxm.shape)
+        #print("sw_indx shape", sw_indx.shape)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
