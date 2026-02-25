@@ -81,11 +81,11 @@ class FocalLoss(nn.Module):
 
         #print("shape...: ",input.shape)
         if self.weight is None:
-            self.weight = torch.ones(input.shape[1], device=input.device)
+            w = 1.0
+        else:
+            w = self.weight[target]
 
-        w = self.weight[target]
-
-        loss = -w*(1-prob)**self.gamma*lprob
+        loss = -w*(1-prob).pow(self.gamma)*lprob
         loss = loss.mean()
 
         #############################################################################

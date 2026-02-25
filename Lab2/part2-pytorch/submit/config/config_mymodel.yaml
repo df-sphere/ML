@@ -2,8 +2,8 @@ Train:
   batch_size: 128
   learning_rate: 0.01
   reg: 0.0005
-  epochs: 10
-  steps: [6, 8]
+  epochs: 50
+  steps: [30, 40]
   warmup: 0
   momentum: 0.9
   gamma: 1
