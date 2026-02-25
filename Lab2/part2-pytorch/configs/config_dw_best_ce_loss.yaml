@@ -17,5 +17,4 @@ data:
   beta: 0.9999
 
 loss:
-  loss_type: Focal # CE or Focal
-
+  loss_type: CE # CE or Focal
