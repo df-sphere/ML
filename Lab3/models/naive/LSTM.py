@@ -1,25 +1,3 @@
-"""
-LSTM model.  (c) 2021 Georgia Tech
-
-Copyright 2021, Georgia Institute of Technology (Georgia Tech)
-Atlanta, Georgia 30332
-All Rights Reserved
-
-Template code for CS 7643 Deep Learning
-
-Georgia Tech asserts copyright ownership of this template and all derivative
-works, including solutions to the projects assigned in this course. Students
-and other users of this template code are advised not to share it with others
-or to make it available on publicly viewable websites including repositories
-such as Github, Bitbucket, and Gitlab.  This copyright statement should
-not be removed or edited.
-
-Sharing solutions with current or future students of CS 7643 Deep Learning is
-prohibited and subject to being investigated as a GT honor code violation.
-
------do not edit anything above this line---
-"""
-
 import numpy as np
 import torch
 import torch.nn as nn
@@ -33,7 +11,7 @@ class LSTM(nn.Module):
             Args:
                 input_size (int): the number of features in the inputs.
                 hidden_size (int): the size of the hidden layer
-            Returns: 
+            Returns:
                 None
         """
         super(LSTM, self).__init__()
@@ -55,14 +33,32 @@ class LSTM(nn.Module):
         #   should NOT transpose the weights.                                          #
         #   You also need to include correct activation functions                      #
         ################################################################################
+        xs, hs = self.input_size, self.hidden_size
+        print("xs: ", xs, " hs: ", hs)
 
         # i_t: input gate
+        self.wx_i = nn.Parameter(torch.Tensor(xs, hs))
+        self.bx_i = nn.Parameter(torch.Tensor(hs))
+        self.wh_i = nn.Parameter(torch.Tensor(hs, hs))
+        self.bh_i = nn.Parameter(torch.Tensor(hs))
 
         # f_t: the forget gate
+        self.wx_f = nn.Parameter(torch.Tensor(xs, hs))
+        self.bx_f = nn.Parameter(torch.Tensor(hs))
+        self.wh_f = nn.Parameter(torch.Tensor(hs, hs))
+        self.bh_f = nn.Parameter(torch.Tensor(hs))
 
         # g_t: the cell gate
+        self.wx_g = nn.Parameter(torch.Tensor(xs, hs))
+        self.bx_g = nn.Parameter(torch.Tensor(hs))
+        self.wh_g = nn.Parameter(torch.Tensor(hs, hs))
+        self.bh_g = nn.Parameter(torch.Tensor(hs))
 
         # o_t: the output gate
+        self.wx_o = nn.Parameter(torch.Tensor(xs, hs))
+        self.bx_o = nn.Parameter(torch.Tensor(hs))
+        self.wh_o = nn.Parameter(torch.Tensor(hs, hs))
+        self.bh_o = nn.Parameter(torch.Tensor(hs))
 
         ################################################################################
         #                              END OF YOUR CODE                                #
@@ -87,7 +83,31 @@ class LSTM(nn.Module):
         #   h_t and c_t should be initialized to zeros.                                #
         #   Note that this time you are also iterating over all of the time steps.     #
         ################################################################################
-        h_t, c_t = None, None  #remove this line when you start implementing your code
+        ht, ct = None, None
+        bs, ts, xs = x.shape
+        #print("x.shape: ", x.shape)
+        #print("wx.shape: ", self.wx_i.shape)
+        #print("bx.shape: ", self.bx_i)
+        #print("wh.shape: ", self.wh_i.shape)
+        #print("bh.shape: ", self.bh_i.shape)
+        ht_1 = torch.zeros(bs, self.hidden_size)
+        ct_1 = torch.zeros(bs, self.hidden_size)
+
+        for t in range(ts):
+            xt = x[:,t,:]
+            #print("xt.shape: ", xt.shape)
+            #print("ht_1.shape: ", ht_1.shape)
+            it = torch.sigmoid(xt @ self.wx_i + self.bx_i + ht_1 @ self.wh_i + self.bh_i)
+            ft = torch.sigmoid(xt @ self.wx_f + self.bx_f + ht_1 @ self.wh_f + self.bh_f)
+            gt = torch.tanh(xt @ self.wx_g  + self.bx_g + ht_1 @ self.wh_g + self.bh_g)
+            ot = torch.sigmoid(xt @ self.wx_o + self.bx_o + ht_1 @ self.wh_o + self.bh_o)
+            ct = ft*ct_1 + it*gt
+            ht = ot*torch.tanh(ct)
+            ht_1 = ht
+            ct_1 = ct
+
+        h_t, c_t = ht, ct
+
         ################################################################################
         #                              END OF YOUR CODE                                #
         ################################################################################
