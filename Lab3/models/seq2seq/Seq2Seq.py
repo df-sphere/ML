@@ -1,6 +1,6 @@
 import random
 
-""" 			  		 			     			  	   		   	  			  	
+"""
 Seq2Seq model.  (c) 2021 Georgia Tech
 
 Copyright 2021, Georgia Institute of Technology (Georgia Tech)
@@ -44,7 +44,10 @@ class Seq2Seq(nn.Module):
         #    that the models are on the same device (CPU/GPU). This should take no  #
         #    more than 2 lines of code.                                             #
         #############################################################################
-
+        self.encoder = encoder     #remove this line when you start implementing your code
+        self.decoder = decoder     #remove this line when you start implementing your code
+        self.encoder = encoder.to(device)
+        self.decoder = decoder.to(device)
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
@@ -65,17 +68,28 @@ class Seq2Seq(nn.Module):
         #          the first hidden state of the decoder                            #
         #       2) The first input for the decoder should be the <sos> token, which #
         #          is the first in the source sequence.                             #
-        #       3) Feed this first input and hidden state into the decoder          #  
+        #       3) Feed this first input and hidden state into the decoder          #
         #          one step at a time in the sequence, adding the output to the     #
         #          final outputs.                                                   #
         #       4) Update the input and hidden being fed into the decoder           #
-        #          at each time step. The decoder output at the previous time step  # 
+        #          at each time step. The decoder output at the previous time step  #
         #          will have to be manipulated before being fed in as the decoder   #
         #          input at the next time step.                                     #
         #############################################################################
 
-        outputs = None      #remove this line when you start implementing your code
-        # initially set outputs as a tensor of zeros with dimensions (batch_size, seq_len, decoder_output_size)
+        output_encoder, hidden = self.encoder(source)
+        outputs = []
+        inpt = source[:, 0].unsqueeze(1)
+
+        for _ in range(seq_len):
+            #print("inpt.shape1: ", inpt.shape)
+            #print("hidden.shape1: ", hidden.shape)
+            inpt, hidden = self.decoder(inpt, hidden, output_encoder)
+            #print("inpt.shape2: ", inpt.shape)
+            outputs.append(inpt)
+            inpt = inpt.argmax(dim=1).unsqueeze(1)
+
+        outputs = torch.stack(outputs, dim=1)
 
         #############################################################################
         #                              END OF YOUR CODE                             #

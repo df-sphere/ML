@@ -66,7 +66,7 @@ class Decoder(nn.Module):
         self.logsoftmax = nn.LogSoftmax(dim=1)
         self.dropout = nn.Dropout(dropout)
         if attention:
-            self.linear_attn = nn.Linear(decoder_hidden_size + emb_size, decoder_hidden_size)
+            self.linear_attn = nn.Linear(encoder_hidden_size + emb_size, emb_size)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -99,7 +99,7 @@ class Decoder(nn.Module):
         hidden = hidden.permute(1, 0, 2)
         #print("hidden.shape: ", hidden.shape)
         #print("encoder_outputs.shape: ", encoder_outputs.shape)
-        attention_prob = torch.cosine_similarity(hidden, encoder_outputs)
+        attention_prob = torch.cosine_similarity(hidden, encoder_outputs, dim=2)
 
         attention_prob = torch.softmax(attention_prob, dim=1)
         attention_prob = attention_prob.unsqueeze(1)
@@ -157,8 +157,8 @@ class Decoder(nn.Module):
             #print("attention_prob.shape: ", attention_prob.shape)
             #print("encoder_outputs.shape: ", encoder_outputs.shape)
             context = attention_prob@encoder_outputs
-            context = torch.cat((context, inpt), dim=2)
-            inpt = self.linear_attn(context)
+            inpt = torch.cat((context, inpt), dim=2)
+            inpt = self.linear_attn(inpt)
 
         output, hidden = self.model(inpt, hidden)
         output = self.linear(output)
