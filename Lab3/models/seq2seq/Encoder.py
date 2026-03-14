@@ -28,7 +28,7 @@ import torch.optim as optim
 
 
 class Encoder(nn.Module):
-    """ The Encoder module of the Seq2Seq model 
+    """ The Encoder module of the Seq2Seq model
         You will need to complete the init function and the forward function.
     """
 
@@ -57,6 +57,17 @@ class Encoder(nn.Module):
         #                                                                           #
         # NOTE: Use nn.RNN and nn.LSTM instead of the naive implementation          #
         #############################################################################
+        self.embedding = nn.Embedding(input_size, emb_size)
+
+        self.mode = None
+        if model_type == "RNN":
+            self.model = nn.RNN(emb_size, encoder_hidden_size, batch_first=True)
+        else:
+            self.model = nn.LSTM(emb_size, encoder_hidden_size, batch_first=True)
+
+        self.linear1 = nn.Linear(encoder_hidden_size, encoder_hidden_size)
+        self.linear2 = nn.Linear(encoder_hidden_size, decoder_hidden_size)
+        self.dropout = nn.Dropout(dropout)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -85,8 +96,22 @@ class Encoder(nn.Module):
         #       If model_type is LSTM, the hidden variable returns a tuple          #
         #       containing both the hidden state and the cell state of the LSTM.    #
         #############################################################################
+        emb = self.embedding(input)
+        emb = self.dropout(emb)
 
-        output, hidden = None, None     #remove this line when you start implementing your code
+        output, hidden = self.model(emb)
+        if self.model_type == "LSTM":
+            ht, ct = hidden
+            ht = self.linear1(ht)
+            ht = torch.relu(ht)
+            ht = self.linear2(ht)
+            ht = torch.tanh(ht)
+            hidden  = (ht, ct)
+        else:
+            hidden = self.linear1(hidden)
+            hidden = torch.relu(hidden)
+            hidden = self.linear2(hidden)
+            hidden = torch.tanh(hidden)
 
         #############################################################################
         #                              END OF YOUR CODE                             #

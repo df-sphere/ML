@@ -19,7 +19,6 @@ prohibited and subject to being investigated as a GT honor code violation.
 
 -----do not edit anything above this line---
 """
-
 import random
 
 import torch
@@ -28,7 +27,7 @@ import torch.optim as optim
 
 
 class Decoder(nn.Module):
-    """ The Decoder module of the Seq2Seq model 
+    """ The Decoder module of the Seq2Seq model
         You will need to complete the init function and the forward function.
     """
 
@@ -55,6 +54,19 @@ class Decoder(nn.Module):
         #           of context vector and input                                     #
         # NOTE: Use nn.RNN and nn.LSTM instead of the naive implementation          #
         #############################################################################
+        self.embedding = nn.Embedding(output_size, emb_size)
+
+        self.mode = None
+        if model_type == "RNN":
+            self.model = nn.RNN(emb_size, decoder_hidden_size, batch_first=True)
+        else:
+            self.model = nn.LSTM(emb_size, decoder_hidden_size, batch_first=True)
+
+        self.linear = nn.Linear(decoder_hidden_size, output_size)
+        self.logsoftmax = nn.LogSoftmax(dim=1)
+        self.dropout = nn.Dropout(dropout)
+        if attention:
+            self.linear_attn = nn.Linear(decoder_hidden_size + emb_size, decoder_hidden_size)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -84,7 +96,15 @@ class Decoder(nn.Module):
         # some other similar function for your implementation.                      #
         #############################################################################
 
-        attention_prob = None   #remove this line when you start implementing your code
+        hidden = hidden.permute(1, 0, 2)
+        #print("hidden.shape: ", hidden.shape)
+        #print("encoder_outputs.shape: ", encoder_outputs.shape)
+        attention_prob = torch.cosine_similarity(hidden, encoder_outputs)
+
+        attention_prob = torch.softmax(attention_prob, dim=1)
+        attention_prob = attention_prob.unsqueeze(1)
+        #print("attention_prob.shape, done: ", attention_prob.shape)
+
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
@@ -124,7 +144,25 @@ class Decoder(nn.Module):
         #       containing both the hidden state and the cell state of the LSTM.    #
         #############################################################################
 
-        output, hidden = None, None     #remove this line when you start implementing your code
+        emb = self.embedding(input)
+        inpt = self.dropout(emb)
+
+        if self.attention:
+            ht = None
+            if self.model_type == "LSTM":
+                ht, ct = hidden
+            else:
+                ht = hidden
+            attention_prob = self.compute_attention(ht, encoder_outputs)
+            #print("attention_prob.shape: ", attention_prob.shape)
+            #print("encoder_outputs.shape: ", encoder_outputs.shape)
+            context = attention_prob@encoder_outputs
+            context = torch.cat((context, inpt), dim=2)
+            inpt = self.linear_attn(context)
+
+        output, hidden = self.model(inpt, hidden)
+        output = self.linear(output)
+        output = self.logsoftmax(output.squeeze(1))
 
         #############################################################################
         #                              END OF YOUR CODE                             #

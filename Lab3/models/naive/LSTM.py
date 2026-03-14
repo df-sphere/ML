@@ -34,7 +34,7 @@ class LSTM(nn.Module):
         #   You also need to include correct activation functions                      #
         ################################################################################
         xs, hs = self.input_size, self.hidden_size
-        print("xs: ", xs, " hs: ", hs)
+        #print("xs: ", xs, " hs: ", hs)
 
         # i_t: input gate
         self.wx_i = nn.Parameter(torch.Tensor(xs, hs))
