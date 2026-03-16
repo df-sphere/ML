@@ -546,6 +546,9 @@ So the full flow is:
 input to layer l -> transformer layer l -> out -> input to layer l+1
 ```
 
+Note:
+- Each decoder layer attends to the final encoder output, not to a same-index encoder layer.
+
 ## 12. Intuition
 
 - `Q` asks what each token is looking for.

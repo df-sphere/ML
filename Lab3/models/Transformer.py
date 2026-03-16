@@ -161,7 +161,7 @@ class TransformerTranslator(nn.Module):
         # Deliverable 1: Return the embeddings.                                     #
         # This will take a few lines.                                               #
         #############################################################################
-        embeddings = self.embeddingL(inputs) + self.posembeddingL(torch.arange(inputs.size(1), device=inputs.device))
+        embeddings = self.embeddingL(inputs) + self.posembeddingL(torch.arange(inputs.shape[1], device=inputs.device))
 
         ##############################################################################
         #                               END OF YOUR CODE                             #
@@ -201,7 +201,7 @@ class TransformerTranslator(nn.Module):
         v2 = self.v2(inputs)
         head2 = self.softmax(q2 @ k2.transpose(1, 2) / np.sqrt(self.dim_k)) @ v2
 
-        outputs = torch.cat((head1, head2), dim=2)
+        outputs = torch.concat((head1, head2), dim=2)
         projected_heads = self.attention_head_projection(outputs)
         outputs = self.norm_mh(inputs + projected_heads)
 
@@ -269,7 +269,7 @@ class FullTransformerTranslator(nn.Module):
         self.input_size = input_size
         self.output_size = output_size
         self.device = device
-        self.pad_idx=ignore_index
+        self.pad_idx = ignore_index
 
         seed_torch(0)
 
@@ -278,6 +278,11 @@ class FullTransformerTranslator(nn.Module):
         # Deliverable 1: Initialize what you need for the Transformer Layer          #
         # You should use nn.Transformer                                              #
         ##############################################################################
+        self.transformer = nn.Transformer(d_model=hidden_dim, nhead=num_heads, num_encoder_layers=num_layers_enc, \
+            num_decoder_layers=num_layers_dec, dim_feedforward=dim_feedforward, dropout=dropout, batch_first=True)
+
+        self.sos = 2
+        self.eos = 3
 
         ##############################################################################
         # TODO:
@@ -286,15 +291,17 @@ class FullTransformerTranslator(nn.Module):
         # Initialize embeddings in order shown below.                                #
         # Don’t worry about sine/cosine encodings- use positional encodings.         #
         ##############################################################################
-        # Do not change the order for these variables
-        self.srcembeddingL = None       #embedding for src
-        self.tgtembeddingL = None       #embedding for target
-        self.srcposembeddingL = None    #embedding for src positional encoding
-        self.tgtposembeddingL = None    #embedding for target positional encoding
+
+        self.srcembeddingL = nn.Embedding(input_size, hidden_dim)
+        self.tgtembeddingL = nn.Embedding(output_size, hidden_dim)
+        self.srcposembeddingL = nn.Embedding(max_length, hidden_dim)
+        self.tgtposembeddingL = nn.Embedding(max_length, hidden_dim)
+
         ##############################################################################
         # TODO:
         # Deliverable 3: Initialize what you need for the final layer.               #
         ##############################################################################
+        self.linear_out = nn.Linear(hidden_dim, output_size)
 
         ##############################################################################
         #                               END OF YOUR CODE                             #
@@ -313,18 +320,25 @@ class FullTransformerTranslator(nn.Module):
         # TODO:
         # Deliverable 4: Implement the full Transformer stack for the forward pass. #
         #############################################################################
-        outputs=None
         # shift tgt to right, add one <sos> to the beginning and shift the other tokens to right
         tgt = self.add_start_token(tgt)
-
-
+        #print("tgt: ", tgt)
         # embed src and tgt for processing by transformer
+        src_p = torch.arange(src.shape[1], device=src.device)
+        tgt_p = torch.arange(tgt.shape[1], device=tgt.device)
+
+        emb_src = self.srcembeddingL(src) + self.srcposembeddingL(src_p)
+        emb_tgt = self.tgtembeddingL(tgt) + self.tgtposembeddingL(tgt_p)
 
         # create target mask and target key padding mask for decoder - Both have boolean values
+        tgt_mask = torch.triu(torch.ones(tgt.shape[1], tgt.shape[1], device=tgt.device, dtype=torch.bool), diagonal=1)
+        tgt_pad_mask = (tgt == self.pad_idx)
 
         # invoke transformer to generate output
+        outputs = self.transformer(src=emb_src, tgt=emb_tgt, tgt_mask=tgt_mask, tgt_key_padding_mask=tgt_pad_mask)
 
         # pass through final layer to generate outputs
+        outputs = self.linear_out(outputs)
 
         ##############################################################################
         #                               END OF YOUR CODE                             #
@@ -346,10 +360,23 @@ class FullTransformerTranslator(nn.Module):
         # Deliverable 5: You will be calling the transformer forward function to    #
         # generate the translation for the input.                                   #
         #############################################################################
-        outputs = None      #remove this line when you start implementing your code
-        tgt=None            #used as an temporary variable to keep track of predicted tokens
-        # initially set outputs as a tensor of zeros with dimensions (batch_size, seq_len, output_size)
-        # initially set tgt as a tensor of <pad> tokens with dimensions (batch_size, seq_len)
+
+        # preallocate first
+        tgt = torch.full((src.shape[0], self.max_length), self.pad_idx, device=src.device, dtype=torch.long)
+        tgt[:, 0] = src[:, 0]
+        outputs = []
+
+        for i in range(self.max_length):
+            decoder_outputs = self.forward(src, tgt)
+            current_output = decoder_outputs[:, i, :]
+            outputs.append(current_output)
+            #print("current_output: ", current_output)
+            token = current_output.argmax(dim=-1, keepdim=True)
+            #print("i: ", i, " argmax: ", token)
+            if i < self.max_length-1:
+                tgt[:, i+1] = token.squeeze(1)
+
+        outputs = torch.stack(outputs, dim=1)
 
         ##############################################################################
         #                               END OF YOUR CODE                             #
