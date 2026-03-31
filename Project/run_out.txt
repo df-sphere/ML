@@ -1,0 +1,14 @@
+ℹ [2/8] Built Project.Example (276ms)
+info: Project/Example.lean:18:0: α × β : Type
+info: Project/Example.lean:19:0: FermatLastTheorem : Prop
+info: Project/Example.lean:20:0: 7
+info: Project/Example.lean:21:0: other_value : Nat
+✔ [4/8] Built Project (257ms)
+✔ [6/8] Built Main (274ms)
+Build completed successfully (8 jobs).
+ℹ [2/8] Replayed Project.Example
+info: Project/Example.lean:18:0: α × β : Type
+info: Project/Example.lean:19:0: FermatLastTheorem : Prop
+info: Project/Example.lean:20:0: 7
+info: Project/Example.lean:21:0: other_value : Nat
+Hello, theorem!
