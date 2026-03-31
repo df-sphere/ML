@@ -19,16 +19,20 @@ class VAELoss(nn.Module):
         #############################################################################
         # TODO:                                                                     #
         #    1. call the reconstruction loss defined in init with the appropriate args
-        #    2. compute KL distance loss         
-        #    3. compute beta weighted loss    
+        #    2. compute KL distance loss
+        #    3. compute beta weighted loss
         #    4. use the if statement below to inform you of the containers to store the loss    #
         #############################################################################
+        image_size = 28
+        loss_recon = self.reconstruction_loss(reconstructed, original) * image_size**2
+        loss_kl = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        loss = loss_recon + self.beta*loss_kl
 
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
 
-        
+
         if self.return_losses:
             return loss, loss_recon, loss_kl
         else:

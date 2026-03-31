@@ -20,14 +20,14 @@ class VAETrainer(Trainer):
         self.optimizer = self._init_optimizer(self.net)
         self.fixed_eval_latents = torch.randn((16, self.config.network.latent_dim), device=self.device)
 
- 
+
 
     @staticmethod
     def _build_vae(input_dim, hidden_dim, latent_dim):
         """
         build basic vae given inputs
         """
-        return VAE(input_dim=input_dim, 
+        return VAE(input_dim=input_dim,
                    hidden_dim=hidden_dim,
                    latent_dim=latent_dim)
 
@@ -35,14 +35,14 @@ class VAETrainer(Trainer):
         """
         instantiate vae and criterion and return them.
         """
-        vae = self._build_vae(input_dim=self.input_dim, 
-                              hidden_dim=self.config.network.hidden_dim, 
+        vae = self._build_vae(input_dim=self.input_dim,
+                              hidden_dim=self.config.network.hidden_dim,
                               latent_dim=self.config.network.latent_dim)
         criterion = VAELoss(beta = self.config.vae.beta,
                              recon_loss=self.config.vae.vae_recon_loss,
-                             return_losses=True) 
+                             return_losses=True)
         return vae, criterion
-    
+
 
     def train(self):
         start = time.time()
@@ -58,13 +58,13 @@ class VAETrainer(Trainer):
 
         loss_func = self.criterion
         model = self.net
-        
+
         # TODO: use the following variables to store the output of the network and the loss terms.
-        loss, l2, l_kl = None, None, None 
+        loss, l2, l_kl = None, None, None
         out = None
 
         for epoch in range(self.n_epochs):
-           
+
             for i, (data, _ ) in enumerate(self.train_loader):
                 start = time.time()
 
@@ -78,7 +78,13 @@ class VAETrainer(Trainer):
                 #    2. compute the loss (self.criterion). dont forget to reshape output
                 #    3. compute loss and backwards pass.                                   #
                 #############################################################################
-                
+                out, mu, logvar = model(data.flatten())
+                out = out.reshape(out.shape[0], self.height, self.width)
+                loss, l2, l_kl = loss_func(out, data.reshape(data.shape[0], self.height, self.width), mu, logvar)
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
+
                 #############################################################################
                 #                              END OF YOUR CODE                             #
                 #############################################################################
@@ -101,30 +107,30 @@ class VAETrainer(Trainer):
                         f'Time {iter_meter.val:.3f} ({iter_meter.avg:.3f})\t'
                         )
 
-            if (epoch+1) % 5 == 0:  
-                filename = f"{self.output_dir}/train_recon_epoch_{epoch+1}.png"  
-                filename_samples = f"{self.output_dir}/samples_{epoch}.png"                
+            if (epoch+1) % 5 == 0:
+                filename = f"{self.output_dir}/train_recon_epoch_{epoch+1}.png"
+                filename_samples = f"{self.output_dir}/samples_{epoch}.png"
                 self.sample_and_save(self.fixed_eval_latents, filename=filename_samples, n=self.fixed_eval_latents.size(0))
                 self.evaluate(epoch=epoch)
 
-        filename = f"{self.output_dir}/final_recon.png"  
+        filename = f"{self.output_dir}/final_recon.png"
         self.reconstruct_and_save(self.fixed_train_batch.view(self.fixed_train_batch.size(0), -1), filename, n=self.fixed_train_batch.size(0))
-        self.sample_and_save(self.fixed_eval_latents, filename=filename_samples, n=self.fixed_eval_latents.size(0)) 
+        self.sample_and_save(self.fixed_eval_latents, filename=filename_samples, n=self.fixed_eval_latents.size(0))
         print(f"Completed in {(time.time()-start):.3f}")
         self.save_model(self.net, f'{self.output_dir}/vae_{self.dataset.lower()}.pth')
 
     def evaluate(self, epoch):
-        
-        filename = f"{self.output_dir}/eval_epoch_{epoch+1}.png"               
+
+        filename = f"{self.output_dir}/eval_epoch_{epoch+1}.png"
         self.reconstruct_and_save(self.fixed_eval_batch.view(self.fixed_eval_batch.size(0), -1), filename, n=self.fixed_eval_batch.size(0))
- 
+
         loss_meter = AverageMeter()
         iter_meter = AverageMeter()
 
         epoch_start = time.time()
-        
+
         self.net.eval()
-        with torch.no_grad():  
+        with torch.no_grad():
             for i, (data, _ ) in enumerate(self.test_loader):
                 start = time.time()
 
@@ -142,42 +148,42 @@ class VAETrainer(Trainer):
                         f'Loss {loss_meter.val:.3f} ({loss_meter.avg:.3f})\t'
                         f'Time {iter_meter.val:.3f} ({iter_meter.avg:.3f})\t'
                         )
-                    
+
         print(f"Val completed in {(time.time()-epoch_start)/60:.3f} min. Loss {loss_meter.val:.3f}")
         return loss_meter.val
 
 
 
     def reconstruct_and_save(self, data, filename, n):
-        self.net.eval()  
+        self.net.eval()
         with torch.no_grad():
             res, _, _ = self.net(data.to(self.device))
         save_reconstruction(data, res, filename, n)
         self.net.train()
 
     def sample_and_save(self, data, filename, n):
-        self.net.eval()  
+        self.net.eval()
         with torch.no_grad():
             res = self.net.generate(data.to(self.device))
         vutils.save_image(res.view(-1,1,28,28), filename, nrow=n)
         self.net.train()
 
 def save_reconstruction(data, res, filename, nrow=8):
-    data = data[:nrow].cpu().view(-1, 28, 28).numpy()  
-    res = res[:nrow].cpu().view(-1, 28, 28).numpy()    
+    data = data[:nrow].cpu().view(-1, 28, 28).numpy()
+    res = res[:nrow].cpu().view(-1, 28, 28).numpy()
 
     fig, axes = plt.subplots(2, nrow, figsize=(nrow * 2, 4))
-    
+
     for i, ax in enumerate(axes[0]):
         ax.imshow(data[i], cmap='gray')
         ax.axis('off')
     axes[0, 0].set_title('Original', fontsize=10, loc='left', pad=10)
-    
+
     for i, ax in enumerate(axes[1]):
         ax.imshow(res[i], cmap='gray')
         ax.axis('off')
     axes[1, 0].set_title('Reconstructed', fontsize=10, loc='left', pad=10)
-    
+
     plt.tight_layout()
     plt.savefig(filename, bbox_inches='tight', pad_inches=0)
     plt.close()

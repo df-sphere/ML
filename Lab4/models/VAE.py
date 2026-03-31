@@ -21,25 +21,27 @@ class BasicEncoder(nn.Module):
         # TODO:                                                                     #
         #    1. linear -> relu to get hidden represntation                           #
         #    2. from hidden representation we have two heads.                       #
-        #     one to produce mu and another to produce logvar. 
+        #     one to produce mu and another to produce logvar.
         #     both use the same latent dim.                                         #
         #############################################################################
-        
-        
+        self.linear = torch.nn.Linear(self.input_dim, self.hidden_dim)
+        self.mu = torch.nn.Linear(self.hidden_dim, self.latent_dim)
+        self.logvar = torch.nn.Linear(self.hidden_dim, self.latent_dim)
+
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
 
-    def forward(self, x):   
+    def forward(self, x):
         """ forward pass for vae encoder.
-            args: 
+            args:
                 x: [N, input_dim]
 
             outputs:
                 mu: [N, latent_dim]
                 logvar: [N, latent_dim]
         """
-        
+
         mu, logvar = None, None
 
          #############################################################################
@@ -47,6 +49,10 @@ class BasicEncoder(nn.Module):
         #    1. implement forward pass for encoder.                        #
         #    2. return mu and logvar                                    #
         #############################################################################
+        x = self.linear(x)
+        x = torch.relu(x)
+        mu = self.mu(x)
+        logvar = self.logvar(x)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -64,7 +70,7 @@ class VAE(nn.Module):
                 hidden_dim: dim of hidden layer
                 latent_dim: dim of latents
 
-            students implement Basic VAE using encoder and decoder. 
+            students implement Basic VAE using encoder and decoder.
             1. instantiate encoder and pass in variables.
             2. instantiate decoder and pass in variables.
         """
@@ -77,12 +83,13 @@ class VAE(nn.Module):
         #############################################################################
         # TODO:                                                                     #
         #    1. instantiate encoder (from above) and decoder(imported) for vae.
-        #   NOTE: replace the None with instantiation. 
-        #   NOTE: Decoder implementation is already provided. 
+        #   NOTE: replace the None with instantiation.
+        #   NOTE: Decoder implementation is already provided.
         #       Only need to instantiate it with appropriate args                  #
         #############################################################################
-        self.encoder = None
-        self.decoder = None
+        self.encoder = BasicEncoder(input_dim, hidden_dim, latent_dim)
+        self.decoder = BasicDecoder(latent_dim, hidden_dim, input_dim)
+
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
@@ -102,17 +109,21 @@ class VAE(nn.Module):
 
         #############################################################################
         # TODO:                                                                     #
-        #    1. compute std from log-variance. 
+        #    1. compute std from log-variance.
         #    2. sample epsilon
         #    3. compute reparameterization.                                         #
         #############################################################################
+        std = torch.exp(0.5 * logvar)
+        # ssmple from normal(0, 1):
+        e = torch.randn_like(std)
+        z = mu + std*e
 
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
 
         return z
-    
+
     @torch.jit.export
     def encode(self, x):
         """
@@ -130,13 +141,15 @@ class VAE(nn.Module):
         #    1. encode imput image (NOTE recall the vae takes a flattened input)
         #    2. compute reparameterization                                  #
         #############################################################################
+        mu, logvar = self.encoder.forward(x)
+        z = self.reparameterize(mu, logvar)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
 
         return (z, mu, logvar)
-    
+
     def forward(self, x):
         """
             args:
@@ -151,13 +164,15 @@ class VAE(nn.Module):
         # TODO:                                                                     #
         #    1. invoke encoder and decoder to obtain reconstructed output, mu and logvar #
         #############################################################################
+        z, mu, logvar = self.encode(x)
+        out = self.decoder.forward(z)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
 
         return (out, mu, logvar)
-        
+
     @torch.jit.export
     @torch.no_grad()
     def generate(self, z):
