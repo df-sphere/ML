@@ -1,1 +1,8 @@
 **/__pycache__/**
+
+# Large data files
+Lab1/data/
+Lab2/part1-convnet/data/
+Lab4/data/
+Lab4/tests/assets/
+Lab4/a4-spring-2026.zip
