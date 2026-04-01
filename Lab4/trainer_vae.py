@@ -78,7 +78,7 @@ class VAETrainer(Trainer):
                 #    2. compute the loss (self.criterion). dont forget to reshape output
                 #    3. compute loss and backwards pass.                                   #
                 #############################################################################
-                out, mu, logvar = model(data.flatten())
+                out, mu, logvar = model(data.view(data.shape[0], -1))
                 out = out.reshape(out.shape[0], self.height, self.width)
                 loss, l2, l_kl = loss_func(out, data.reshape(data.shape[0], self.height, self.width), mu, logvar)
                 self.optimizer.zero_grad()
