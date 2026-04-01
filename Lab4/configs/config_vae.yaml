@@ -2,16 +2,16 @@ data:
   dataset: mnist # fashionmnist
 train:
   batch_size: 64
-  lr: 0.001
+  lr: 0.005
   n_epochs: 10 
   num_workers: 30 # change this based on number of cores on your CPU. 4 is sufficient for 1 gpu. If unsure leave at 1.
 network:
   model: vae # vae, gan, diffusion
-  hidden_dim: 400 # used for VAE and gan
-  latent_dim: 60 # used for VAE or gan
+  hidden_dim: 800 # used for VAE and gan
+  latent_dim: 25 # used for VAE or gan
 vae:
   vae_recon_loss: l1 # l1 or l2
-  beta: 0.05
+  beta: 0.001 
 diffusion:
   time_dim: 128
   timesteps: 500
