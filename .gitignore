@@ -3,6 +3,7 @@
 # Large data files
 Lab1/data/
 Lab2/part1-convnet/data/
+Lab2/part2-pytorch/data/
 Lab4/data/
 Lab4/tests/assets/
 Lab4/a4-spring-2026.zip
