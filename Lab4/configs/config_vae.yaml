@@ -11,7 +11,7 @@ network:
   latent_dim: 40 # used for VAE or gan
 vae:
   vae_recon_loss: l1 # l1 or l2
-  beta: 0.003
+  beta: 0.005
 diffusion:
   time_dim: 128
   timesteps: 500
