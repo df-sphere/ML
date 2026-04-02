@@ -8,7 +8,7 @@ train:
 network:
   model: vae # vae, gan, diffusion
   hidden_dim: 1600 # used for VAE and gan
-  latent_dim: 40 # used for VAE or gan
+  latent_dim: 20 # used for VAE or gan
 vae:
   vae_recon_loss: l1 # l1 or l2
   beta: 0.02
