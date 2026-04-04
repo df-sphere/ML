@@ -13,20 +13,31 @@ class BasicDiscriminator(nn.Module):
         #    Output layer with sigmoid activation                               #
         # 2. use RelU (leaky=False) or LeakyReLU (leaky=True) based on leaky param     #
         #############################################################################
+        self.fc1 = nn.Linear(input_dim, hidden_dim)
+        self.fc2 = nn.Linear(hidden_dim, output_dim)
+        if leaky:
+            self.act = nn.LeakyReLU()
+        else:
+            self.act = nn.ReLU()
+        self.sig = nn.Sigmoid()
 
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
 
-    def forward(self, x):   
+    def forward(self, x):
         #############################################################################
         # TODO:                                                                     #
         # 1. implement forward pass given input x. note that x here is pre-flattened   #
         #############################################################################
+        x = self.fc1(x)
+        x = self.act(x)
+        x = self.fc2(x)
+        out = self.sig(x)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
-        ############################################################################# 
+        #############################################################################
         return out
 
 class BasicLeakyGenerator(nn.Module):

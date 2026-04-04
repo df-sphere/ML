@@ -25,7 +25,7 @@ class GANTrainer(Trainer):
 
         self.fixed_eval_latents = torch.randn((64, self.config.network.latent_dim), device=self.device)
 
- 
+
 
     @staticmethod
     def _build_generator(output_dim, hidden_dim, latent_dim, leaky=False):
@@ -33,7 +33,7 @@ class GANTrainer(Trainer):
         build basic generator given inputs
         """
         if leaky:
-            return BasicLeakyGenerator(output_dim=output_dim, 
+            return BasicLeakyGenerator(output_dim=output_dim,
                     hidden_dim=hidden_dim,
                     latent_dim=latent_dim)
         else:
@@ -45,18 +45,18 @@ class GANTrainer(Trainer):
         """
         instantiate generator
         """
-        generator = self._build_generator(output_dim=self.input_dim, 
-                              hidden_dim=self.config.network.hidden_dim, 
+        generator = self._build_generator(output_dim=self.input_dim,
+                              hidden_dim=self.config.network.hidden_dim,
                               latent_dim=self.config.network.latent_dim,
                               leaky=self.config.gan.leaky)
         return generator
-    
+
     @staticmethod
     def _build_discriminator(input_dim, hidden_dim, leaky=True):
         """
         build basic discriminator given inputs
         """
-        return BasicDiscriminator(input_dim=input_dim, 
+        return BasicDiscriminator(input_dim=input_dim,
                    hidden_dim=hidden_dim,
                    output_dim=1,
                    leaky=leaky)
@@ -65,8 +65,8 @@ class GANTrainer(Trainer):
         """
         instantiate discriminator
         """
-        disc = self._build_discriminator(input_dim=self.input_dim, 
-                              hidden_dim=self.config.network.hidden_dim, 
+        disc = self._build_discriminator(input_dim=self.input_dim,
+                              hidden_dim=self.config.network.hidden_dim,
                               leaky=self.config.gan.leaky
                                 )
         return disc
@@ -78,7 +78,14 @@ class GANTrainer(Trainer):
         # 1. sample real data, put on device, and create 'real' labels,
         # 2. obtain discriminater assessment on real images, obtain loss on real images using self.criterion
         #############################################################################
-        return None
+        # sample batch_size rows from data
+        sample = data[torch.randint(0, data.size(0), (batch_size,))]
+        sample = sample.view(batch_size, -1).to(self.device)
+        out = self.discriminator.forward(sample)
+        target = torch.ones((batch_size, 1), device=self.device)
+        loss = self.criterion(out, target)
+
+        return loss
 
     def compute_loss_fake(self, batch_size, latent_dim):
         #############################################################################
@@ -86,8 +93,12 @@ class GANTrainer(Trainer):
         # 1. sample latents for fake images, create 'fake' labels. dont forget to detatch generator output from graph.
         # 2. obtain discriminater assessment on fake images, obtain loss on fake images using self.criterion
         #############################################################################
+        sample = self.generator.forward(torch.randn((batch_size, latent_dim), device=self.device)).detach()
+        out = self.discriminator.forward(sample)
+        target = torch.zeros((batch_size, 1), device=self.device)
+        loss = self.criterion(out, target)
 
-        return None
+        return loss
 
     def compute_loss_gen(self, batch_size, latent_dim):
         #############################################################################
@@ -95,8 +106,12 @@ class GANTrainer(Trainer):
         #  1. use generator with new latents to obtain fakes. create labels
         #  2. get discriminator assessment on fakes and compute loss using self.criterion
         #############################################################################
+        g_out = self.generator.forward(torch.randn((batch_size, latent_dim), device=self.device))
+        d_out = self.discriminator.forward(g_out)
+        target = torch.ones((batch_size, 1), device=self.device)
+        loss = self.criterion(d_out, target)
 
-        return None
+        return loss
 
 
     def train(self):
@@ -114,7 +129,7 @@ class GANTrainer(Trainer):
         loss_func = self.criterion
 
         for epoch in range(self.n_epochs):
-           
+
             for i, (data, _ ) in enumerate(self.train_loader):
                 start = time.time()
                 batch_size = data.size(0)
@@ -131,7 +146,7 @@ class GANTrainer(Trainer):
                 loss_fake = None
                 loss_gen = None
                 #############################################################################
-                # TODO:  
+                # TODO:
                 # A. Train discriminator
                 # 0. Implement compute_loss_real and compute_loss_fake
                 # 1. Compute and combine the fake and real losses and take step to optimize discriminator.
@@ -140,11 +155,21 @@ class GANTrainer(Trainer):
                 # 0. Implement compute_loss_gen
                 # 1. compute the generator loss and take step to optimize generator.
                 #############################################################################
+                self.discriminator.zero_grad()
+                loss_real = self.compute_loss_real(data.view(batch_size, -1).to(self.device), batch_size)
+                loss_fake = self.compute_loss_fake(batch_size, latent_dim)
+                loss_d = loss_real + loss_fake
+                loss_d.backward()
+                self.optimizer_disc.step()
 
+                self.generator.zero_grad()
+                loss_g = self.compute_loss_gen(batch_size, latent_dim)
+                loss_g.backward()
+                self.optimizer_gen.step()
 
                 #############################################################################
                 #                              END OF YOUR CODE                             #
-                ############################################################################# 
+                #############################################################################
 
 
                 loss_meter_real.update(loss_real, data.size(0))
@@ -161,11 +186,11 @@ class GANTrainer(Trainer):
                         f'Time {iter_meter.val:.3f} ({iter_meter.avg:.3f})\t'
                         )
 
-                if (epoch*len(self.train_loader)+i) % 3000 == 0:  
-                    filename = f"{self.output_dir}/train_epoch_{epoch+1}_iter_{i}.png"               
+                if (epoch*len(self.train_loader)+i) % 3000 == 0:
+                    filename = f"{self.output_dir}/train_epoch_{epoch+1}_iter_{i}.png"
                     self.sample_generator(self.fixed_eval_latents, filename, n=self.fixed_eval_latents.size(0))
 
-        filename = f"{self.output_dir}/final_samples.png"               
+        filename = f"{self.output_dir}/final_samples.png"
         self.sample_generator(self.fixed_eval_latents, filename, n=self.fixed_eval_latents.size(0))
         print(f"Completed in {(time.time()-start):.3f}.")
         self.save_model(self.discriminator, f'{self.output_dir}/discriminator_{self.dataset.lower()}.pth')
@@ -173,7 +198,7 @@ class GANTrainer(Trainer):
 
 
     def sample_generator(self, data, filename, n):
-        self.generator.eval()  
+        self.generator.eval()
         with torch.no_grad():
             res = self.generator(data.to(self.device))
         vutils.save_image(res.view(-1,1,28,28), filename, nrow=n)
