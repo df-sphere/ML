@@ -163,8 +163,8 @@ class GANTrainer(Trainer):
                 self.optimizer_disc.step()
 
                 self.generator.zero_grad()
-                loss_g = self.compute_loss_gen(batch_size, latent_dim)
-                loss_g.backward()
+                loss_gen = self.compute_loss_gen(batch_size, latent_dim)
+                loss_gen.backward()
                 self.optimizer_gen.step()
 
                 #############################################################################
