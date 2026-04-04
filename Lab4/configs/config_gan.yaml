@@ -3,8 +3,8 @@ data:
 train:
   batch_size: 64
   lr: 0.001
-  n_epochs: 5
-  num_workers: 4 # change this based on number of cores on your CPU. 4 is sufficient for 1 gpu. If unsure leave at 1.  
+  n_epochs: 10 
+  num_workers: 30 # change this based on number of cores on your CPU. 4 is sufficient for 1 gpu. If unsure leave at 1.  
 network:
   model: gan # vae, gan, diffusion
   hidden_dim: 200 # used for VAE and gan
