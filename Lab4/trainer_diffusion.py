@@ -32,7 +32,7 @@ class DiffusionTrainer(Trainer):
 
         #############################################################################
         # TODO:                                                                     #
-        # 1. Create noise schedule beta across timesteps. 
+        # 1. Create noise schedule beta across timesteps.
         #   remember to put beta on the device provided.                          #
         # 2. Compute alpha terms from beta                                         #
         # 3. Calculate cumulative alpha terms                                      #
@@ -40,6 +40,9 @@ class DiffusionTrainer(Trainer):
         # - What       ranges for beta?                                    #
         # - What does the cumulative product represent?                           #
         #############################################################################
+        self.beta = torch.linspace(self.noise_start, self.noise_end, steps=self.timesteps).to(device=self.device)
+        self.alpha = 1 - self.beta
+        self.alphas_bar = torch.cumprod(self.alpha, dim=0)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -68,6 +71,9 @@ class DiffusionTrainer(Trainer):
         # - Why this particular combination of terms?                               #
         # - How does this relate to the reverse process?                            #
         #############################################################################
+        noise = torch.randn_like(x_0)
+        alpha_bar_t = self.alphas_bar[t].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        x_t = torch.sqrt(alpha_bar_t) * x_0 + torch.sqrt(1-alpha_bar_t) * noise
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -106,7 +112,13 @@ class DiffusionTrainer(Trainer):
                 # 3. Predict noise using current model                                     #
                 # 4. Update model parameters using prediction error                        #
                 #############################################################################
-                loss, out, noise = None, None, None # use this variables to store loss, predicted noise and noise.
+                t = torch.randint(0, self.timesteps, (self.batch_size,), device=self.device).unsqueeze(1)
+                x_t, noise = self.forward_diffusion(data, t)
+                out = self.net.forward(x_t, t)
+                loss = self.criterion(out, noise)
+                self.optimizer.zero_grad()
+                loss.backward()
+                self.optimizer.step()
 
                 #############################################################################
                 #                              END OF YOUR CODE                             #
@@ -143,6 +155,15 @@ class DiffusionTrainer(Trainer):
         #    b. Combine current sample and predicted noise                          #
         # 4. Add variance term if t>0, otherwise return mean                        #
         #############################################################################
+        alpha_t = self.alpha[t].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        alpha_bar = self.alphas_bar[t].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        noise_pred = self.net.forward(x, t)
+        x_prev = (1/torch.sqrt(alpha_t)) * (x - (1-alpha_t)/torch.sqrt(1-alpha_bar) * noise_pred)
+        if t[0] > 0:
+            noise = torch.randn_like(x)
+            beta_t = self.beta[t].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+            sigma_t = torch.sqrt(beta_t)
+            x_prev = x_prev + sigma_t * noise
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -158,10 +179,13 @@ class DiffusionTrainer(Trainer):
         #############################################################################
         # TODO:                                                                     #
         # 1. compute the sampling using the sample_timestep you defined earlier.
-        # 2. consider the order in which we iterate over timesteps. 
+        # 2. consider the order in which we iterate over timesteps.
         # 3. reference the DDPM algorithm for more info.
         # 4. This function is completed for learning purposes and is not used.
         #############################################################################
+        for i in reversed(range(self.timesteps)):
+            t = torch.full((x.size(0),), i, device=self.device, dtype=torch.long).unsqueeze(1)
+            x = self.sample_timestep(x, t)
 
         #############################################################################
         #                              END OF YOUR CODE                             #
@@ -182,7 +206,7 @@ class DiffusionTrainer(Trainer):
 
             normalized_x = (x_current.clone() + 1) / 2
             saved_images.extend(normalized_x)
-            
+
         saved_images = torch.stack(saved_images)
         return saved_images
 
@@ -191,23 +215,23 @@ class DiffusionTrainer(Trainer):
     def visualize_forward_diffusion(self, data, epoch, steps_to_plot=None, max_n=8):
         if steps_to_plot is None:
             steps_to_plot = torch.linspace(0, self.timesteps-1, steps=50, dtype=torch.int32, device=self.device)
-        
+
         x0 = data[:max_n].to(self.device)
         self.batch_size = x0.size(0)
-        
+
         timestep_images = []
         for t_int in steps_to_plot:
             t = torch.full((self.batch_size,), t_int, device=self.device, dtype=torch.long)
             x_t, _ = self.forward_diffusion(x0, t.unsqueeze(1))
             x_t = (x_t + 1) / 2  # Normalize to [0,1]
             timestep_images.append(x_t)
-        
+
         # Stack temporally to get [T, B, C, H, W]
         timestep_images = torch.stack(timestep_images)
-        
+
         # transpose to get [B, T, C, H, W] then reshape [B*T, C, H, W]
         grid = timestep_images.transpose(0, 1).reshape(-1, *x0.shape[1:])
-        
+
         vutils.save_image(
             grid,
             f"{self.output_dir}/epoch{epoch}_forward_diffusion_steps.png",
@@ -217,33 +241,33 @@ class DiffusionTrainer(Trainer):
 
     @torch.no_grad()
     def visualize_reverse_diffusion(self, x=None, epoch=0, max_n=8):
-        
+
 
         if x is None:
             x = torch.randn((max_n, 1, self.height, self.width), device=self.device)
         else:
             x = x[:max_n].to(self.device)
-        
+
         self.batch_size = x.size(0)
         x_current = x.clone()
 
         save_steps = torch.linspace(self.timesteps-1, 0, steps=50, dtype=torch.int32, device=self.device)
         saved_images = []
-        
+
         for i in reversed(range(self.timesteps)):
             t = torch.full((self.batch_size,), i, device=self.device, dtype=torch.long).unsqueeze(1)
             x_current = self.sample_timestep(x_current, t)
-            
+
             if i in save_steps:
                 normalized_x = (x_current.clone() + 1) / 2
                 saved_images.append(normalized_x)
-        
+
         # Stack temporally to get [T, B, C, H, W]
         saved_images = torch.stack(saved_images)
-        
+
         # transpose to get [B, T, C, H, W] then reshape [B*T, C, H, W]
         grid = saved_images.transpose(0, 1).reshape(-1, *x.shape[1:])
-        
+
         vutils.save_image(
             grid,
             f"{self.output_dir}/reverse_diffusion_epoch_{epoch}.png",
