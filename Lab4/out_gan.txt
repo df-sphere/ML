@@ -1,0 +1,9 @@
+Using CUDA (gpu: NVIDIA A10).
+Epoch: [0][0/938]	D_Loss_Real 0.719 (0.719)	 D_Loss_Fake 0.639 (0.639)	 G_Loss 0.851 (0.851)	 Time 0.213 (0.213)	
+Epoch: [1][0/938]	D_Loss_Real 0.142 (0.274)	 D_Loss_Fake 0.116 (0.147)	 G_Loss 2.326 (2.266)	 Time 0.005 (0.003)	
+Epoch: [2][0/938]	D_Loss_Real 0.157 (0.206)	 D_Loss_Fake 0.187 (0.173)	 G_Loss 1.968 (2.094)	 Time 0.005 (0.003)	
+Epoch: [3][0/938]	D_Loss_Real 0.092 (0.183)	 D_Loss_Fake 0.138 (0.171)	 G_Loss 2.637 (2.151)	 Time 0.005 (0.003)	
+Epoch: [4][0/938]	D_Loss_Real 0.069 (0.163)	 D_Loss_Fake 0.094 (0.153)	 G_Loss 2.694 (2.333)	 Time 0.005 (0.003)	
+Completed in 0.042.
+Model saved to ./outputs/gan/discriminator_mnist.pth
+Model saved to ./outputs/gan/generator_mnist.pth
