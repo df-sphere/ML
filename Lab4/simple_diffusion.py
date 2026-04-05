@@ -17,7 +17,7 @@ class SimpleDiffusionTrainer:
         self.image = image.to(device)
         self.output_dir = f"./outputs/simple_diffusion"
         os.makedirs(self.output_dir, exist_ok=True,)
-        
+
         # sample fixed noise
         torch.manual_seed(42)
         num_noises = 1
@@ -30,7 +30,7 @@ class SimpleDiffusionTrainer:
         if idx is None:
             idx = torch.randint(0,len(self.fixed_noises),(1,)).item()
         return self.fixed_noises[idx]
-        
+
     def train_step(self):
         self.model.train()
         torch.manual_seed(42)
@@ -42,22 +42,28 @@ class SimpleDiffusionTrainer:
 
         #############################################################################
         # TODO:                                                                     #
-        #  
+        #
         #     1. create noisy image by taking the image defined above and adding the fixed noise to it.
         #     2. predict noise given noisy image using the model defined in the trainer class.
         #     3. compute loss between ground truth noise and predicted noise. and then apply backprop.
         #     4. use the variables for loss and pred_noise defined above as those are returned.                                  #
         #############################################################################
+        noisy_image = image + fixed_noise
+        pred_noise = self.model(noisy_image.unsqueeze(0)).flatten().view_as(fixed_noise)
+        loss = torch.nn.MSELoss(reduction='mean')(pred_noise, fixed_noise)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
 
         return loss.item(), pred_noise
-    
+
     @torch.no_grad()
     def reverse_step(self, step):
-        
+
         self.model.eval()
         # create noisy image.
         fixed_noise = self.sample_noise()
@@ -68,15 +74,17 @@ class SimpleDiffusionTrainer:
 
         #############################################################################
         # # TODO:                                                                     #
-        #     1. you are given a noisy image. predict the noise 
-        #     2. use the predicted noise to denoise the image.   
+        #     1. you are given a noisy image. predict the noise
+        #     2. use the predicted noise to denoise the image.
         #      3. use the denoised_image and pred_noise variable to store the respective data #
         #############################################################################
+        pred_noise = self.model.forward(noisy_image.unsqueeze(0)).flatten().view_as(noisy_image)
+        denoised_image = noisy_image - pred_noise
 
         #############################################################################
         #                              END OF YOUR CODE                             #
         #############################################################################
-        
+
         # visualization
         grid = torch.cat([
             self.image,        # orig image
@@ -85,29 +93,29 @@ class SimpleDiffusionTrainer:
             pred_noise,        # predicted noise
             denoised_image      # denoised image
         ], dim=0)
-        
+
         vutils.save_image(grid.unsqueeze(1), os.path.join(self.output_dir,f"noise_test_{step:04d}.png"), nrow=5, normalize=True)
         return grid
 
 def train():
     images, _ = map(list, zip(*load_pt_data('mnist_1_shots.pt')))
     image = images[0]
-    
+
     # normalize to [-1,1]
-    single_image = 2 * image - 1 
+    single_image = 2 * image - 1
 
     device = get_device()
     trainer = SimpleDiffusionTrainer(single_image, device=device)
-    
+
     trainer.reverse_step(step=0)
     # training loop
     for step in range(100):
         loss, pred_noise = trainer.train_step()
-        
+
         if (step+1) % 25 == 0:
             print(f"Step {step}, Loss: {loss:.6f}")
             trainer.reverse_step(step)
-    
+
 
 if __name__ == "__main__":
     train()
