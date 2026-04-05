@@ -72,7 +72,7 @@ class DiffusionTrainer(Trainer):
         # - How does this relate to the reverse process?                            #
         #############################################################################
         noise = torch.randn_like(x_0)
-        alpha_bar_t = self.alphas_bar[t].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        alpha_bar_t = self.alphas_bar[t].unsqueeze(-1).unsqueeze(-1)
         x_t = torch.sqrt(alpha_bar_t) * x_0 + torch.sqrt(1-alpha_bar_t) * noise
 
         #############################################################################
@@ -155,13 +155,13 @@ class DiffusionTrainer(Trainer):
         #    b. Combine current sample and predicted noise                          #
         # 4. Add variance term if t>0, otherwise return mean                        #
         #############################################################################
-        alpha_t = self.alpha[t].unsqueeze(1).unsqueeze(2).unsqueeze(3)
-        alpha_bar = self.alphas_bar[t].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+        alpha_t = self.alpha[t].unsqueeze(-1).unsqueeze(-1)
+        alpha_bar = self.alphas_bar[t].unsqueeze(-1).unsqueeze(-1)
         noise_pred = self.net.forward(x, t)
         x_prev = (1/torch.sqrt(alpha_t)) * (x - (1-alpha_t)/torch.sqrt(1-alpha_bar) * noise_pred)
         if t[0] > 0:
             noise = torch.randn_like(x)
-            beta_t = self.beta[t].unsqueeze(1).unsqueeze(2).unsqueeze(3)
+            beta_t = self.beta[t].unsqueeze(-1).unsqueeze(-1)
             sigma_t = torch.sqrt(beta_t)
             x_prev = x_prev + sigma_t * noise
 
