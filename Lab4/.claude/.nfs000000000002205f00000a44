@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(vim --version)",
+      "Bash(vim -e -s -c 'qa!')",
+      "Bash(vim -c 'qa!')",
+      "Bash(mkdir -p ~/.vim/colors)",
+      "Bash(curl -o ~/.vim/colors/solarized.vim https://raw.githubusercontent.com/altercation/vim-colors-solarized/master/colors/solarized.vim)",
+      "Bash(gcc --version)",
+      "Bash(make --version)",
+      "Bash(~/sqr/usr/bin/vim --version)",
+      "Bash(~/sqr/usr/bin/vim:*)",
+      "Bash(/usr/bin/vim -c 'qa!')",
+      "Bash(curl -o /tmp/node.tar.xz https://nodejs.org/dist/v22.14.0/node-v22.14.0-linux-x64.tar.xz)",
+      "Bash(tar -xf /tmp/node.tar.xz -C /tmp/)",
+      "Bash(cp /tmp/node-v22.14.0-linux-x64/bin/node ~/sqr/usr/bin/)",
+      "Bash(~/sqr/usr/bin/node --version)",
+      "Bash(ls ~/sqr/.vim-packages/pack/*/start/*/plugin/*.vim)",
+      "Bash(dpkg -l libx11-dev libxt-dev)",
+      "Bash(sudo apt-get:*)",
+      "Bash(sort -t: -k2 -rn /tmp/vim_startup.log)",
+      "Bash(sort -t: -k1 -rn)",
+      "Bash(bash ./fid.sh)"
+    ]
+  }
+}
